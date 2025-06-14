@@ -40,8 +40,25 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header with Profile Icon */}
-        <div className="flex justify-end mb-6">
+        {/* Header with Logo, Title, and Profile */}
+        <div className="flex justify-between items-center mb-12">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img 
+              src="/lovable-uploads/82ee4e3c-1177-441b-a939-b23f4a9f3496.png" 
+              alt="Students App Logo" 
+              className="w-16 h-16 object-contain"
+            />
+          </div>
+
+          {/* Centered Title */}
+          <div className="flex-1 text-center">
+            <h1 className="text-5xl md:text-6xl font-bold gradient-text animate-fade-in">
+              Students App
+            </h1>
+          </div>
+
+          {/* Profile Icon */}
           <button
             onClick={() => navigate('/profile')}
             className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
@@ -50,16 +67,8 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Header */}
+        {/* Subtitle */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <BookOpen className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold gradient-text mb-4 animate-fade-in">
-            Students App
-          </h1>
           <p className="text-xl text-gray-600 animate-fade-in">
             Education is the Most Powerful Weapon Which You Can Change the World..
           </p>
