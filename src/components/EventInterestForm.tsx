@@ -30,6 +30,12 @@ interface FormData {
   groupSize?: string;
 }
 
+interface OptionType {
+  value: string;
+  label: string;
+  icon?: React.ComponentType<any>;
+}
+
 // Mock user data - in a real app, this would come from authentication/user context
 const mockUserData = {
   name: 'John Smith',
@@ -62,7 +68,7 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
     onClose();
   };
 
-  const getCulturalOptions = () => {
+  const getCulturalOptions = (): OptionType[] => {
     if (event.category === 'Cultural') {
       return [
         { value: 'music', label: 'Music Performance', icon: Music },
@@ -77,7 +83,7 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
     return [];
   };
 
-  const getSportsOptions = () => {
+  const getSportsOptions = (): OptionType[] => {
     if (event.category === 'Sports') {
       return [
         { value: 'individual', label: 'Individual Events' },
@@ -89,7 +95,7 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
     return [];
   };
 
-  const getAcademicOptions = () => {
+  const getAcademicOptions = (): OptionType[] => {
     if (event.category === 'Academic') {
       return [
         { value: 'presentation', label: 'Presentation' },
@@ -101,7 +107,7 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
     return [];
   };
 
-  const getEventSpecificOptions = () => {
+  const getEventSpecificOptions = (): OptionType[] => {
     return [...getCulturalOptions(), ...getSportsOptions(), ...getAcademicOptions()];
   };
 
