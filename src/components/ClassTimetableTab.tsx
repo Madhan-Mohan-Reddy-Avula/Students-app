@@ -1,45 +1,112 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BookOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface Period {
-  time: string;
-  subject: string;
-  faculty: string;
+interface TimetableEntry {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  room_location: string;
+  teacher: string;
+  subjects?: {
+    name: string;
+  };
+  faculty?: {
+    name: string;
+  };
 }
 
-interface DaySchedule {
-  day: string;
-  date: string;
-  periods: Period[];
-}
+const ClassTimetableTab = () => {
+  const [timetableData, setTimetableData] = useState<TimetableEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-interface ClassTimetableTabProps {
-  classSchedule: DaySchedule[];
-}
+  useEffect(() => {
+    fetchTimetable();
+  }, []);
 
-const ClassTimetableTab = ({ classSchedule }: ClassTimetableTabProps) => {
-  // Extract unique time slots
-  const timeSlots = Array.from(new Set(classSchedule[0].periods.map(period => period.time)));
+  const fetchTimetable = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('timetable')
+        .select(`
+          *,
+          subjects (name),
+          faculty (name)
+        `)
+        .order('day_of_week')
+        .order('start_time');
+
+      if (error) {
+        console.error('Error fetching timetable:', error);
+        toast.error('Failed to load timetable');
+        return;
+      }
+
+      setTimetableData(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to load timetable');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDayName = (dayNumber: number) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayNumber] || 'Unknown';
+  };
+
+  const formatTime = (time: string) => {
+    try {
+      const [hours, minutes] = time.split(':');
+      const hour24 = parseInt(hours);
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      const ampm = hour24 >= 12 ? 'PM' : 'AM';
+      return `${hour12}:${minutes} ${ampm}`;
+    } catch {
+      return time;
+    }
+  };
+
+  // Group timetable entries by time slots
+  const timeSlots = Array.from(new Set(timetableData.map(entry => 
+    `${entry.start_time}-${entry.end_time}`
+  ))).sort();
 
   // Create a matrix for the timetable
   const createTimetableMatrix = () => {
-    const matrix: { [key: string]: { [key: string]: string } } = {};
+    const matrix: { [key: string]: { [key: number]: TimetableEntry } } = {};
     
-    classSchedule.forEach(daySchedule => {
-      daySchedule.periods.forEach(period => {
-        if (!matrix[period.time]) {
-          matrix[period.time] = {};
-        }
-        matrix[period.time][daySchedule.day] = period.subject;
-      });
+    timetableData.forEach(entry => {
+      const timeSlot = `${entry.start_time}-${entry.end_time}`;
+      if (!matrix[timeSlot]) {
+        matrix[timeSlot] = {};
+      }
+      matrix[timeSlot][entry.day_of_week] = entry;
     });
     
     return matrix;
   };
 
   const timetableMatrix = createTimetableMatrix();
+
+  if (loading) {
+    return (
+      <div className="card-3d p-6 animate-fade-in">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading timetable...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -58,51 +125,49 @@ const ClassTimetableTab = ({ classSchedule }: ClassTimetableTabProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {timeSlots.map((timeSlot) => (
-                <TableRow key={timeSlot} className="hover:bg-purple-50">
-                  <TableCell className="font-medium text-purple-600">
-                    {timeSlot}
-                  </TableCell>
-                  <TableCell className={`font-semibold ${
-                    timetableMatrix[timeSlot]?.Monday === 'Break' || timetableMatrix[timeSlot]?.Monday === 'Lunch Break'
-                      ? 'text-gray-600 italic bg-gray-50' 
-                      : 'text-gray-800'
-                  }`}>
-                    {timetableMatrix[timeSlot]?.Monday || '-'}
-                  </TableCell>
-                  <TableCell className={`font-semibold ${
-                    timetableMatrix[timeSlot]?.Tuesday === 'Break' || timetableMatrix[timeSlot]?.Tuesday === 'Lunch Break'
-                      ? 'text-gray-600 italic bg-gray-50' 
-                      : 'text-gray-800'
-                  }`}>
-                    {timetableMatrix[timeSlot]?.Tuesday || '-'}
-                  </TableCell>
-                  <TableCell className={`font-semibold ${
-                    timetableMatrix[timeSlot]?.Wednesday === 'Break' || timetableMatrix[timeSlot]?.Wednesday === 'Lunch Break'
-                      ? 'text-gray-600 italic bg-gray-50' 
-                      : 'text-gray-800'
-                  }`}>
-                    {timetableMatrix[timeSlot]?.Wednesday || '-'}
-                  </TableCell>
-                  <TableCell className={`font-semibold ${
-                    timetableMatrix[timeSlot]?.Thursday === 'Break' || timetableMatrix[timeSlot]?.Thursday === 'Lunch Break'
-                      ? 'text-gray-600 italic bg-gray-50' 
-                      : 'text-gray-800'
-                  }`}>
-                    {timetableMatrix[timeSlot]?.Thursday || '-'}
-                  </TableCell>
-                  <TableCell className={`font-semibold ${
-                    timetableMatrix[timeSlot]?.Friday === 'Break' || timetableMatrix[timeSlot]?.Friday === 'Lunch Break'
-                      ? 'text-gray-600 italic bg-gray-50' 
-                      : 'text-gray-800'
-                  }`}>
-                    {timetableMatrix[timeSlot]?.Friday || '-'}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {timeSlots.map((timeSlot) => {
+                const [startTime, endTime] = timeSlot.split('-');
+                return (
+                  <TableRow key={timeSlot} className="hover:bg-purple-50">
+                    <TableCell className="font-medium text-purple-600">
+                      {formatTime(startTime)} - {formatTime(endTime)}
+                    </TableCell>
+                    {[1, 2, 3, 4, 5].map((dayNum) => {
+                      const entry = timetableMatrix[timeSlot]?.[dayNum];
+                      const subject = entry?.subjects?.name || 'No Subject';
+                      const teacher = entry?.faculty?.name || entry?.teacher || 'No Teacher';
+                      const room = entry?.room_location || '';
+                      
+                      return (
+                        <TableCell key={dayNum} className="font-semibold text-gray-800">
+                          {entry ? (
+                            <div className="space-y-1">
+                              <div className="font-bold">{subject}</div>
+                              <div className="text-sm text-gray-600">{teacher}</div>
+                              {room && <div className="text-xs text-gray-500">{room}</div>}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
+        
+        {timetableData.length === 0 && (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-6 h-6 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">No timetable data</h3>
+            <p className="text-gray-600">Class schedule will appear here.</p>
+          </div>
+        )}
       </div>
     </div>
   );

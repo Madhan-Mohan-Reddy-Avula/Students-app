@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen, CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -7,47 +7,58 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface Assignment {
+  id: string;
+  subject: string;
+  title: string;
+  description: string;
+  due_date: string;
+  priority: string;
+  status: string;
+  faculty?: {
+    name: string;
+  };
+}
 
 const Homework = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [assignments] = useState([
-    {
-      id: 1,
-      subject: 'Mathematics',
-      title: 'Algebra Problems - Chapter 5',
-      dueDate: '2024-06-20',
-      status: 'pending',
-      priority: 'high',
-      description: 'Complete exercises 1-15 from the algebra workbook'
-    },
-    {
-      id: 2,
-      subject: 'English Literature',
-      title: 'Essay on Shakespeare',
-      dueDate: '2024-06-22',
-      status: 'in-progress',
-      priority: 'medium',
-      description: 'Write a 500-word essay on Hamlet\'s character development'
-    },
-    {
-      id: 3,
-      subject: 'Science',
-      title: 'Lab Report - Chemical Reactions',
-      dueDate: '2024-06-18',
-      status: 'completed',
-      priority: 'high',
-      description: 'Document findings from the chemical reaction experiment'
-    },
-    {
-      id: 4,
-      subject: 'History',
-      title: 'Research Project - World War II',
-      dueDate: '2024-06-25',
-      status: 'pending',
-      priority: 'low',
-      description: 'Create a presentation on the causes of World War II'
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('homework_assignments')
+        .select(`
+          *,
+          faculty (
+            name
+          )
+        `)
+        .order('due_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching assignments:', error);
+        toast.error('Failed to load assignments');
+        return;
+      }
+
+      setAssignments(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to load assignments');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,10 +102,26 @@ const Homework = () => {
   // Filter assignments based on selected date
   const filteredAssignments = selectedDate 
     ? assignments.filter(assignment => {
-        const assignmentDate = new Date(assignment.dueDate);
+        const assignmentDate = new Date(assignment.due_date);
         return assignmentDate.toDateString() === selectedDate.toDateString();
       })
     : assignments;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
+        <NavigationHeader title="Homework" subtitle="Track your assignments and deadlines" />
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading assignments...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
@@ -150,14 +177,20 @@ const Homework = () => {
                     {assignment.subject}
                   </p>
                   
+                  {assignment.faculty && (
+                    <p className="text-gray-500 text-sm mb-2">
+                      Assigned by: {assignment.faculty.name}
+                    </p>
+                  )}
+                  
                   <p className="text-gray-600 mb-4">
-                    {assignment.description}
+                    {assignment.description || 'No description provided'}
                   </p>
                   
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Calendar className="w-4 h-4" />
-                      <span>Due: {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                      <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4" />
@@ -170,7 +203,7 @@ const Homework = () => {
           ))}
         </div>
         
-        {filteredAssignments.length === 0 && (
+        {filteredAssignments.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-gray-400" />
