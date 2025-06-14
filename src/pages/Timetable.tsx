@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -95,7 +94,7 @@ const Timetable = () => {
     { name: 'Mr. Anderson', subject: 'Computer Science', department: 'Technology' }
   ];
 
-  // Exam Timetable Data
+  // Enhanced Exam Timetable Data
   const [exams] = useState([
     {
       id: 1,
@@ -105,7 +104,11 @@ const Timetable = () => {
       duration: '2 hours',
       location: 'Room 101',
       type: 'Written Exam',
-      syllabus: 'Chapters 1-8: Algebra, Geometry, Trigonometry'
+      examType: 'Formative Assessment (FA-I)',
+      syllabus: 'Chapters 1-8: Algebra, Geometry, Trigonometry',
+      startDate: '2024-06-25',
+      endDate: '2024-06-28',
+      pdfReference: 'mathematics_fa1_syllabus.pdf'
     },
     {
       id: 2,
@@ -115,7 +118,11 @@ const Timetable = () => {
       duration: '3 hours',
       location: 'Room 205',
       type: 'Written Exam',
-      syllabus: 'Shakespeare, Poetry Analysis, Essay Writing'
+      examType: 'Summative Assessment (SA-I)',
+      syllabus: 'Shakespeare, Poetry Analysis, Essay Writing',
+      startDate: '2024-06-27',
+      endDate: '2024-06-30',
+      pdfReference: 'english_sa1_syllabus.pdf'
     },
     {
       id: 3,
@@ -125,7 +132,11 @@ const Timetable = () => {
       duration: '1.5 hours',
       location: 'Lab 3',
       type: 'Practical Exam',
-      syllabus: 'Chemical Reactions, Physics Experiments'
+      examType: 'Formative Assessment (FA-II)',
+      syllabus: 'Chemical Reactions, Physics Experiments',
+      startDate: '2024-06-29',
+      endDate: '2024-07-01',
+      pdfReference: 'science_fa2_practical.pdf'
     },
     {
       id: 4,
@@ -135,7 +146,25 @@ const Timetable = () => {
       duration: '2 hours',
       location: 'Room 150',
       type: 'Written Exam',
-      syllabus: 'World War I & II, Industrial Revolution'
+      examType: 'SSC Board Exam (Class 10)',
+      syllabus: 'World War I & II, Industrial Revolution',
+      startDate: '2024-07-02',
+      endDate: '2024-07-15',
+      pdfReference: 'history_ssc_syllabus.pdf'
+    },
+    {
+      id: 5,
+      subject: 'Computer Science',
+      date: '2024-07-05',
+      time: '11:00 AM',
+      duration: '2.5 hours',
+      location: 'Computer Lab',
+      type: 'Practical Exam',
+      examType: 'Summative Assessment (SA-II)',
+      syllabus: 'Programming Fundamentals, Data Structures',
+      startDate: '2024-07-05',
+      endDate: '2024-07-08',
+      pdfReference: 'cs_sa2_practical.pdf'
     }
   ]);
 
