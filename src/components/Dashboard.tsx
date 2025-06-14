@@ -15,11 +15,11 @@ const Dashboard = () => {
       description: 'Track assignments and deadlines'
     },
     {
-      title: 'Exam Timetable',
+      title: 'Timetable',
       icon: Calendar,
-      path: '/exam-timetable',
+      path: '/timetable',
       gradient: 'from-purple-600 to-purple-700',
-      description: 'View upcoming exams and schedule'
+      description: 'View class schedule and exam timetable'
     },
     {
       title: 'School Events',
