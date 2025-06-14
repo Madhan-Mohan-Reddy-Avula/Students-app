@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BookOpen, Calendar, Users, FileText } from 'lucide-react';
+import { BookOpen, Calendar, Users, FileText, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
@@ -40,6 +40,16 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
+        {/* Header with Profile Icon */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+          >
+            <User className="w-6 h-6 text-white" />
+          </button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">

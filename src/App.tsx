@@ -9,6 +9,7 @@ import Homework from "./pages/Homework";
 import ExamTimetable from "./pages/ExamTimetable";
 import SchoolEvents from "./pages/SchoolEvents";
 import Results from "./pages/Results";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/exam-timetable" element={<ExamTimetable />} />
           <Route path="/school-events" element={<SchoolEvents />} />
           <Route path="/results" element={<Results />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
