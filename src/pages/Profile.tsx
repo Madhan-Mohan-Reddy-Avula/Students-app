@@ -1,63 +1,80 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { User, Phone, Mail, MapPin, GraduationCap, Users, Shield, Heart, Calendar, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface StudentProfile {
+  id: string;
+  roll_number: string;
+  name: string;
+  email: string;
+  department: string;
+  year: number;
+  phone?: string;
+  avatar_url?: string;
+  class_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ClassInfo {
+  id: string;
+  name: string;
+  section?: string;
+  year: number;
+}
 
 const Profile = () => {
-  // Sample student data
-  const studentData = {
-    personalInfo: {
-      fullName: "Rajesh Kumar",
-      profilePhoto: "",
-      gender: "Male",
-      dateOfBirth: "15/03/2008",
-      contactNumber: "+91 9876543210",
-      parentContact: "+91 9876543211",
-      email: "rajesh.kumar@email.com",
-      parentEmail: "parent.kumar@email.com",
-      bloodGroup: "B+",
-      aadhaarNumber: "1234 5678 9012",
-      studentId: "STU2024001"
-    },
-    addressDetails: {
-      presentAddress: "123, MG Road, Bangalore",
-      permanentAddress: "456, Village Road, Mysore",
-      city: "Bangalore",
-      state: "Karnataka",
-      pincode: "560001",
-      country: "India"
-    },
-    academicInfo: {
-      admissionNumber: "ADM2024001",
-      rollNumber: "24001",
-      class: "10th Grade",
-      section: "A",
-      schoolName: "St. Xavier's High School",
-      board: "CBSE",
-      academicYear: "2024-25",
-      mediumOfInstruction: "English"
-    },
-    parentDetails: {
-      fatherName: "Suresh Kumar",
-      fatherOccupation: "Software Engineer",
-      motherName: "Priya Kumar",
-      motherOccupation: "Teacher",
-      guardianName: "Suresh Kumar",
-      parentContact1: "+91 9876543211",
-      parentContact2: "+91 9876543212",
-      parentEmail1: "suresh.kumar@email.com",
-      parentEmail2: "priya.kumar@email.com"
-    },
-    additionalInfo: {
-      emergencyContact: "+91 9876543213",
-      transportRoute: "Route 5 - MG Road",
-      accommodationType: "Day Scholar",
-      sportsPreferences: "Cricket, Basketball",
-      extracurriculars: "Debate Club, Science Club",
-      specialNeeds: "None",
-      medicalHistory: "No significant medical history"
+  const [studentData, setStudentData] = useState<StudentProfile | null>(null);
+  const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStudentProfile();
+  }, []);
+
+  const fetchStudentProfile = async () => {
+    try {
+      setLoading(true);
+      
+      // For demo purposes, we'll fetch the first profile
+      // In a real app, this would be based on the authenticated user
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        toast.error('Failed to load profile data');
+        return;
+      }
+
+      setStudentData(profile);
+
+      // Fetch class information if class_id exists
+      if (profile?.class_id) {
+        const { data: classData, error: classError } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('id', profile.class_id)
+          .single();
+
+        if (!classError && classData) {
+          setClassInfo(classData);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to load profile data');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,6 +99,35 @@ const Profile = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
+        <NavigationHeader title="Profile" subtitle="Student Information" />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!studentData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
+        <NavigationHeader title="Profile" subtitle="Student Information" />
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">No profile found</h3>
+          <p className="text-gray-600">Unable to load student profile data.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
       <NavigationHeader title="Profile" subtitle="Student Information" />
@@ -91,20 +137,23 @@ const Profile = () => {
         <div className="card-3d p-8 mb-8 animate-fade-in">
           <div className="flex items-center space-x-6">
             <Avatar className="w-24 h-24">
-              <AvatarImage src={studentData.personalInfo.profilePhoto} />
+              <AvatarImage src={studentData.avatar_url} />
               <AvatarFallback className="bg-gradient-to-br from-purple-500 to-purple-600 text-white text-2xl">
-                {studentData.personalInfo.fullName.split(' ').map(n => n[0]).join('')}
+                {studentData.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
             <div>
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {studentData.personalInfo.fullName}
+                {studentData.name}
               </h2>
               <p className="text-purple-600 font-medium text-lg">
-                {studentData.academicInfo.class} - Section {studentData.academicInfo.section}
+                {classInfo ? `${classInfo.name} - Section ${classInfo.section || 'A'}` : `Year ${studentData.year}`}
               </p>
               <p className="text-gray-600">
-                {studentData.academicInfo.schoolName}
+                {studentData.department} Department
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Roll Number: {studentData.roll_number}
               </p>
             </div>
           </div>
@@ -115,76 +164,43 @@ const Profile = () => {
           {/* Personal Information */}
           <InfoCard title="Personal Information" icon={User}>
             <div className="space-y-2">
-              <InfoRow label="Full Name" value={studentData.personalInfo.fullName} />
-              <InfoRow label="Gender" value={studentData.personalInfo.gender} />
-              <InfoRow label="Date of Birth" value={studentData.personalInfo.dateOfBirth} />
-              <InfoRow label="Contact Number" value={studentData.personalInfo.contactNumber} />
-              <InfoRow label="Email ID" value={studentData.personalInfo.email} />
-              <InfoRow label="Blood Group" value={studentData.personalInfo.bloodGroup} />
-              <InfoRow label="Student ID" value={studentData.personalInfo.studentId} />
-              <InfoRow label="Aadhaar Number" value={studentData.personalInfo.aadhaarNumber} />
-            </div>
-          </InfoCard>
-
-          {/* Address Details */}
-          <InfoCard title="Address Details" icon={MapPin}>
-            <div className="space-y-2">
-              <InfoRow label="Present Address" value={studentData.addressDetails.presentAddress} />
-              <InfoRow label="Permanent Address" value={studentData.addressDetails.permanentAddress} />
-              <InfoRow label="City" value={studentData.addressDetails.city} />
-              <InfoRow label="State" value={studentData.addressDetails.state} />
-              <InfoRow label="Pincode" value={studentData.addressDetails.pincode} />
-              <InfoRow label="Country" value={studentData.addressDetails.country} />
+              <InfoRow label="Full Name" value={studentData.name} />
+              <InfoRow label="Roll Number" value={studentData.roll_number} />
+              <InfoRow label="Email ID" value={studentData.email} />
+              <InfoRow label="Phone Number" value={studentData.phone || 'Not provided'} />
+              <InfoRow label="Department" value={studentData.department} />
+              <InfoRow label="Year" value={studentData.year.toString()} />
+              <InfoRow label="Student ID" value={studentData.id} />
             </div>
           </InfoCard>
 
           {/* Academic Information */}
           <InfoCard title="Academic Information" icon={GraduationCap}>
             <div className="space-y-2">
-              <InfoRow label="Admission Number" value={studentData.academicInfo.admissionNumber} />
-              <InfoRow label="Roll Number" value={studentData.academicInfo.rollNumber} />
-              <InfoRow label="Class" value={studentData.academicInfo.class} />
-              <InfoRow label="Section" value={studentData.academicInfo.section} />
-              <InfoRow label="School Name" value={studentData.academicInfo.schoolName} />
-              <InfoRow label="Board" value={studentData.academicInfo.board} />
-              <InfoRow label="Academic Year" value={studentData.academicInfo.academicYear} />
-              <InfoRow label="Medium" value={studentData.academicInfo.mediumOfInstruction} />
+              <InfoRow label="Department" value={studentData.department} />
+              <InfoRow label="Year" value={`Year ${studentData.year}`} />
+              <InfoRow label="Class" value={classInfo?.name || 'Not assigned'} />
+              <InfoRow label="Section" value={classInfo?.section || 'Not assigned'} />
+              <InfoRow label="Roll Number" value={studentData.roll_number} />
+              <InfoRow label="Student ID" value={studentData.id.substring(0, 8)} />
             </div>
           </InfoCard>
 
-          {/* Parent/Guardian Details */}
-          <InfoCard title="Parent/Guardian Details" icon={Users}>
+          {/* Contact Information */}
+          <InfoCard title="Contact Information" icon={Phone}>
             <div className="space-y-2">
-              <InfoRow label="Father's Name" value={studentData.parentDetails.fatherName} />
-              <InfoRow label="Father's Occupation" value={studentData.parentDetails.fatherOccupation} />
-              <InfoRow label="Mother's Name" value={studentData.parentDetails.motherName} />
-              <InfoRow label="Mother's Occupation" value={studentData.parentDetails.motherOccupation} />
-              <InfoRow label="Guardian" value={studentData.parentDetails.guardianName} />
-              <InfoRow label="Parent Contact 1" value={studentData.parentDetails.parentContact1} />
-              <InfoRow label="Parent Contact 2" value={studentData.parentDetails.parentContact2} />
-              <InfoRow label="Parent Email 1" value={studentData.parentDetails.parentEmail1} />
-              <InfoRow label="Parent Email 2" value={studentData.parentDetails.parentEmail2} />
+              <InfoRow label="Email Address" value={studentData.email} />
+              <InfoRow label="Phone Number" value={studentData.phone || 'Not provided'} />
+              <InfoRow label="Emergency Contact" value="Not available"} />
             </div>
           </InfoCard>
 
-          {/* Additional Information */}
-          <InfoCard title="Additional Information" icon={BookOpen}>
+          {/* Account Information */}
+          <InfoCard title="Account Information" icon={Shield}>
             <div className="space-y-2">
-              <InfoRow label="Emergency Contact" value={studentData.additionalInfo.emergencyContact} />
-              <InfoRow label="Transport Route" value={studentData.additionalInfo.transportRoute} />
-              <InfoRow label="Accommodation" value={studentData.additionalInfo.accommodationType} />
-              <InfoRow label="Sports Preferences" value={studentData.additionalInfo.sportsPreferences} />
-              <InfoRow label="Extracurriculars" value={studentData.additionalInfo.extracurriculars} />
-              <InfoRow label="Special Needs" value={studentData.additionalInfo.specialNeeds} />
-            </div>
-          </InfoCard>
-
-          {/* Medical Information */}
-          <InfoCard title="Medical Information" icon={Heart}>
-            <div className="space-y-2">
-              <InfoRow label="Blood Group" value={studentData.personalInfo.bloodGroup} />
-              <InfoRow label="Medical History" value={studentData.additionalInfo.medicalHistory} />
-              <InfoRow label="Emergency Contact" value={studentData.additionalInfo.emergencyContact} />
+              <InfoRow label="Account Created" value={new Date(studentData.created_at).toLocaleDateString()} />
+              <InfoRow label="Last Updated" value={new Date(studentData.updated_at).toLocaleDateString()} />
+              <InfoRow label="Profile Status" value="Active" />
             </div>
           </InfoCard>
         </div>
