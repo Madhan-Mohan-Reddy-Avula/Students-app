@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavigationHeader from '@/components/NavigationHeader';
 import { User, Phone, Mail, MapPin, GraduationCap, Users, Shield, Heart, Calendar, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,10 +32,36 @@ const Profile = () => {
   const [studentData, setStudentData] = useState<StudentProfile | null>(null);
   const [classInfo, setClassInfo] = useState<ClassInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchStudentProfile();
+    checkAuthAndFetchProfile();
   }, []);
+
+  const checkAuthAndFetchProfile = async () => {
+    try {
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // No user is logged in, redirect to login page
+        console.log('No authenticated user found, redirecting to login');
+        navigate('/login');
+        return;
+      }
+
+      setUser(session.user);
+      console.log('Authenticated user found:', session.user);
+      
+      // Fetch user profile data
+      await fetchStudentProfile();
+      
+    } catch (error) {
+      console.error('Auth check error:', error);
+      navigate('/login');
+    }
+  };
 
   const fetchStudentProfile = async () => {
     try {
