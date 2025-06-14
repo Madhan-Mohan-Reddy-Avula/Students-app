@@ -10,10 +10,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface EventInterestFormProps {
   event: {
-    id: number;
+    id: string;
     title: string;
-    date: string;
-    time: string;
+    event_date: string;
+    start_time: string;
     location: string;
     category: string;
   };
@@ -127,7 +127,7 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
                 {event.title}
               </p>
               <p className="text-xs text-gray-500">
-                {new Date(event.date).toLocaleDateString()} at {event.time}
+                {new Date(event.event_date).toLocaleDateString()} at {event.start_time}
               </p>
             </div>
             <button
