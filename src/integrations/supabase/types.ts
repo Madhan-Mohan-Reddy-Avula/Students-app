@@ -9,7 +9,372 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      event_registrations: {
+        Row: {
+          attendance_status: string | null
+          event_id: string
+          id: string
+          registered_at: string
+          student_id: string
+        }
+        Insert: {
+          attendance_status?: string | null
+          event_id: string
+          id?: string
+          registered_at?: string
+          student_id: string
+        }
+        Update: {
+          attendance_status?: string | null
+          event_id?: string
+          id?: string
+          registered_at?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "school_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          exam_date: string
+          exam_type: string
+          id: string
+          instructions: string | null
+          max_score: number
+          room: string | null
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          exam_date: string
+          exam_type: string
+          id?: string
+          instructions?: string | null
+          max_score?: number
+          room?: string | null
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          exam_date?: string
+          exam_type?: string
+          id?: string
+          instructions?: string | null
+          max_score?: number
+          room?: string | null
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          status?: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_submissions: {
+        Row: {
+          feedback: string | null
+          grade: number | null
+          homework_id: string
+          id: string
+          status: string
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          feedback?: string | null
+          grade?: number | null
+          homework_id: string
+          id?: string
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          feedback?: string | null
+          grade?: number | null
+          homework_id?: string
+          id?: string
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homework"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string
+          email: string
+          id: string
+          name: string
+          roll_number: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department: string
+          email: string
+          id: string
+          name: string
+          roll_number: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string
+          email?: string
+          id?: string
+          name?: string
+          roll_number?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      results: {
+        Row: {
+          created_at: string
+          exam_id: string
+          grade: string | null
+          id: string
+          rank: number | null
+          score: number
+          student_id: string
+          total_students: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_id: string
+          grade?: string | null
+          id?: string
+          rank?: number | null
+          score: number
+          student_id: string
+          total_students?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_id?: string
+          grade?: string | null
+          id?: string
+          rank?: number | null
+          score?: number
+          student_id?: string
+          total_students?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          event_date: string
+          event_type: string
+          id: string
+          is_mandatory: boolean
+          location: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          is_mandatory?: boolean
+          location?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_mandatory?: boolean
+          location?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          code: string
+          created_at: string
+          credits: number
+          department: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          credits?: number
+          department: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          credits?: number
+          department?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      timetable: {
+        Row: {
+          class_type: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          room: string
+          start_time: string
+          subject_id: string
+          teacher: string
+        }
+        Insert: {
+          class_type?: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          room: string
+          start_time: string
+          subject_id: string
+          teacher: string
+        }
+        Update: {
+          class_type?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          room?: string
+          start_time?: string
+          subject_id?: string
+          teacher?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
