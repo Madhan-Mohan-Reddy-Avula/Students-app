@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar, Clock, MapPin, AlertCircle, BookOpen } from 'lucide-react';
 
 const Timetable = () => {
-  // Class Timetable Data - updated to include date
+  // Class Timetable Data - restructured for the new layout
   const [classSchedule] = useState([
     {
       day: 'Monday',
@@ -79,6 +78,40 @@ const Timetable = () => {
       ]
     }
   ]);
+
+  // Extract unique time slots
+  const timeSlots = Array.from(new Set(classSchedule[0].periods.map(period => period.time)));
+
+  // Create a matrix for the timetable
+  const createTimetableMatrix = () => {
+    const matrix: { [key: string]: { [key: string]: string } } = {};
+    
+    classSchedule.forEach(daySchedule => {
+      daySchedule.periods.forEach(period => {
+        if (!matrix[period.time]) {
+          matrix[period.time] = {};
+        }
+        matrix[period.time][daySchedule.day] = period.subject;
+      });
+    });
+    
+    return matrix;
+  };
+
+  const timetableMatrix = createTimetableMatrix();
+
+  // Faculty information
+  const facultyList = [
+    { name: 'Mr. Smith', subject: 'Mathematics', department: 'Science' },
+    { name: 'Ms. Johnson', subject: 'English', department: 'Languages' },
+    { name: 'Dr. Brown', subject: 'Science', department: 'Science' },
+    { name: 'Mr. Davis', subject: 'History', department: 'Social Studies' },
+    { name: 'Ms. Wilson', subject: 'Geography', department: 'Social Studies' },
+    { name: 'Coach Miller', subject: 'Physical Education', department: 'Sports' },
+    { name: 'Ms. Garcia', subject: 'Art', department: 'Creative Arts' },
+    { name: 'Mr. Taylor', subject: 'Music', department: 'Creative Arts' },
+    { name: 'Mr. Anderson', subject: 'Computer Science', department: 'Technology' }
+  ];
 
   // Exam Timetable Data
   const [exams] = useState([
@@ -172,48 +205,73 @@ const Timetable = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="font-bold text-purple-700">DAY</TableHead>
-                      <TableHead className="font-bold text-purple-700">DATE</TableHead>
-                      <TableHead className="font-bold text-purple-700">SUBJECT</TableHead>
                       <TableHead className="font-bold text-purple-700">TIME</TableHead>
-                      <TableHead className="font-bold text-purple-700">FACULTY</TableHead>
+                      <TableHead className="font-bold text-purple-700">MONDAY</TableHead>
+                      <TableHead className="font-bold text-purple-700">TUESDAY</TableHead>
+                      <TableHead className="font-bold text-purple-700">WEDNESDAY</TableHead>
+                      <TableHead className="font-bold text-purple-700">THURSDAY</TableHead>
+                      <TableHead className="font-bold text-purple-700">FRIDAY</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {classSchedule.map((daySchedule) => (
-                      daySchedule.periods.map((period, index) => (
-                        <TableRow 
-                          key={`${daySchedule.day}-${index}`}
-                          className={`${
-                            period.subject === 'Break' || period.subject === 'Lunch Break'
-                              ? 'bg-gray-50'
-                              : 'hover:bg-purple-50'
-                          }`}
-                        >
-                          <TableCell className="font-medium">
-                            {index === 0 ? daySchedule.day : ''}
-                          </TableCell>
-                          <TableCell>
-                            {index === 0 ? new Date(daySchedule.date).toLocaleDateString() : ''}
-                          </TableCell>
-                          <TableCell className={`font-semibold ${
-                            period.subject === 'Break' || period.subject === 'Lunch Break' 
-                              ? 'text-gray-600 italic' 
-                              : 'text-gray-800'
-                          }`}>
-                            {period.subject}
-                          </TableCell>
-                          <TableCell className="text-purple-600 font-medium">
-                            {period.time}
-                          </TableCell>
-                          <TableCell className="text-gray-700">
-                            {period.faculty || '-'}
-                          </TableCell>
-                        </TableRow>
-                      ))
+                    {timeSlots.map((timeSlot) => (
+                      <TableRow key={timeSlot} className="hover:bg-purple-50">
+                        <TableCell className="font-medium text-purple-600">
+                          {timeSlot}
+                        </TableCell>
+                        <TableCell className={`font-semibold ${
+                          timetableMatrix[timeSlot]?.Monday === 'Break' || timetableMatrix[timeSlot]?.Monday === 'Lunch Break'
+                            ? 'text-gray-600 italic bg-gray-50' 
+                            : 'text-gray-800'
+                        }`}>
+                          {timetableMatrix[timeSlot]?.Monday || '-'}
+                        </TableCell>
+                        <TableCell className={`font-semibold ${
+                          timetableMatrix[timeSlot]?.Tuesday === 'Break' || timetableMatrix[timeSlot]?.Tuesday === 'Lunch Break'
+                            ? 'text-gray-600 italic bg-gray-50' 
+                            : 'text-gray-800'
+                        }`}>
+                          {timetableMatrix[timeSlot]?.Tuesday || '-'}
+                        </TableCell>
+                        <TableCell className={`font-semibold ${
+                          timetableMatrix[timeSlot]?.Wednesday === 'Break' || timetableMatrix[timeSlot]?.Wednesday === 'Lunch Break'
+                            ? 'text-gray-600 italic bg-gray-50' 
+                            : 'text-gray-800'
+                        }`}>
+                          {timetableMatrix[timeSlot]?.Wednesday || '-'}
+                        </TableCell>
+                        <TableCell className={`font-semibold ${
+                          timetableMatrix[timeSlot]?.Thursday === 'Break' || timetableMatrix[timeSlot]?.Thursday === 'Lunch Break'
+                            ? 'text-gray-600 italic bg-gray-50' 
+                            : 'text-gray-800'
+                        }`}>
+                          {timetableMatrix[timeSlot]?.Thursday || '-'}
+                        </TableCell>
+                        <TableCell className={`font-semibold ${
+                          timetableMatrix[timeSlot]?.Friday === 'Break' || timetableMatrix[timeSlot]?.Friday === 'Lunch Break'
+                            ? 'text-gray-600 italic bg-gray-50' 
+                            : 'text-gray-800'
+                        }`}>
+                          {timetableMatrix[timeSlot]?.Friday || '-'}
+                        </TableCell>
+                      </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            </div>
+
+            {/* Faculty Section */}
+            <div className="card-3d p-6 animate-fade-in">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">Faculty Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {facultyList.map((faculty, index) => (
+                  <div key={index} className="bg-white p-4 rounded-lg border border-purple-100 hover:shadow-md transition-shadow">
+                    <h4 className="font-bold text-gray-800 mb-1">{faculty.name}</h4>
+                    <p className="text-purple-600 font-medium">{faculty.subject}</p>
+                    <p className="text-sm text-gray-600">{faculty.department}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </TabsContent>
