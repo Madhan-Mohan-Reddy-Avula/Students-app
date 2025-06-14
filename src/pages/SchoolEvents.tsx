@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
+import EventInterestForm from '@/components/EventInterestForm';
 import { Calendar, Clock, MapPin, Users, Star } from 'lucide-react';
 
 const SchoolEvents = () => {
@@ -62,6 +63,8 @@ const SchoolEvents = () => {
     }
   ]);
 
+  const [selectedEvent, setSelectedEvent] = useState<typeof events[0] | null>(null);
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Academic':
@@ -83,6 +86,14 @@ const SchoolEvents = () => {
     return diffDays;
   };
 
+  const handleEventClick = (event: typeof events[0]) => {
+    setSelectedEvent(event);
+  };
+
+  const handleCloseForm = () => {
+    setSelectedEvent(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
       <NavigationHeader title="School Events" subtitle="Stay updated with school activities" />
@@ -95,7 +106,8 @@ const SchoolEvents = () => {
             return (
               <div
                 key={event.id}
-                className={`card-3d p-6 ${event.featured ? 'border-l-4 border-l-purple-500' : ''} animate-fade-in`}
+                className={`card-3d p-6 cursor-pointer hover:shadow-lg transition-shadow ${event.featured ? 'border-l-4 border-l-purple-500' : ''} animate-fade-in`}
+                onClick={() => handleEventClick(event)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -154,6 +166,12 @@ const SchoolEvents = () => {
                     </div>
                   </div>
                 )}
+
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-purple-600 font-medium">
+                    Click to express interest in this event
+                  </p>
+                </div>
               </div>
             );
           })}
@@ -169,6 +187,14 @@ const SchoolEvents = () => {
           </div>
         )}
       </div>
+
+      {/* Interest Form Modal */}
+      {selectedEvent && (
+        <EventInterestForm
+          event={selectedEvent}
+          onClose={handleCloseForm}
+        />
+      )}
     </div>
   );
 };
