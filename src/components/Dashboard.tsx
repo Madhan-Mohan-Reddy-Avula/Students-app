@@ -51,7 +51,7 @@ const Dashboard = () => {
             Students App
           </h1>
           <p className="text-xl text-gray-600 animate-fade-in">
-            Your academic companion for success
+            Education is the Most Powerful Weapon Which You Can Change the World..
           </p>
         </div>
 
