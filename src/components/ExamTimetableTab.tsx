@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, AlertCircle, FileText, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Exam {
   id: number;
@@ -27,25 +26,6 @@ interface ExamTimetableTabProps {
 const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [showPdf, setShowPdf] = useState(false);
-
-  const examTypes = [
-    {
-      grade: "Formative Assessments (FA I–IV)",
-      description: "Short-term in-class tests for continuous feedback"
-    },
-    {
-      grade: "Summative Assessments (SA‑I, II)",
-      description: "Broader exams at the end of instructional periods"
-    },
-    {
-      grade: "SSC Board Exams (Class 10)",
-      description: "6-subject public exam with SSC certificate"
-    },
-    {
-      grade: "SSC Supplementaries",
-      description: "Re-examination for failed subjects (May)"
-    }
-  ];
 
   const getDaysUntilExam = (examDate: string) => {
     const today = new Date();
@@ -217,31 +197,6 @@ const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Exam Types Information */}
-      <Card className="card-3d">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-purple-600">Exam Types</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-semibold">Grade / Exam Type</TableHead>
-                <TableHead className="font-semibold">What It Is</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {examTypes.map((examType, index) => (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{examType.grade}</TableCell>
-                  <TableCell>{examType.description}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
       {/* Exam Schedule */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-gray-800">Upcoming Exams</h2>
