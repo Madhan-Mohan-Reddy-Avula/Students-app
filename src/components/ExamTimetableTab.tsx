@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, AlertCircle, FileText, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, MapPin, AlertCircle, FileText, ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -19,13 +19,40 @@ interface Exam {
   pdfReference?: string;
 }
 
+interface ExamModule {
+  examType: string;
+  startDate: string;
+  endDate: string;
+  exams: Exam[];
+}
+
 interface ExamTimetableTabProps {
   exams: Exam[];
 }
 
 const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [selectedModule, setSelectedModule] = useState<ExamModule | null>(null);
   const [showPdf, setShowPdf] = useState(false);
+
+  // Group exams by examType to create modules
+  const examModules: ExamModule[] = React.useMemo(() => {
+    const moduleMap = new Map<string, ExamModule>();
+    
+    exams.forEach(exam => {
+      if (!moduleMap.has(exam.examType)) {
+        moduleMap.set(exam.examType, {
+          examType: exam.examType,
+          startDate: exam.startDate,
+          endDate: exam.endDate,
+          exams: []
+        });
+      }
+      moduleMap.get(exam.examType)!.exams.push(exam);
+    });
+
+    return Array.from(moduleMap.values());
+  }, [exams]);
 
   const getDaysUntilExam = (examDate: string) => {
     const today = new Date();
@@ -61,6 +88,15 @@ const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
     setSelectedExam(null);
   };
 
+  const handleBackFromModule = () => {
+    setSelectedModule(null);
+  };
+
+  const handleBackFromExam = () => {
+    setSelectedExam(null);
+  };
+
+  // PDF Viewer
   if (showPdf && selectedExam) {
     return (
       <div className="min-h-screen bg-white">
@@ -92,6 +128,7 @@ const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
     );
   }
 
+  // Individual Exam Details
   if (selectedExam) {
     const daysUntil = getDaysUntilExam(selectedExam.date);
     const urgencyBadge = getUrgencyBadge(daysUntil);
@@ -100,12 +137,12 @@ const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Button
-            onClick={() => setSelectedExam(null)}
+            onClick={handleBackFromExam}
             variant="outline"
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Exam List</span>
+            <span>Back to Module</span>
           </Button>
         </div>
 
@@ -195,55 +232,137 @@ const ExamTimetableTab = ({ exams }: ExamTimetableTabProps) => {
     );
   }
 
+  // Module View - Show all subjects in selected exam module
+  if (selectedModule) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={handleBackFromModule}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Exam Modules</span>
+          </Button>
+        </div>
+
+        <Card className="card-3d">
+          <CardHeader>
+            <CardTitle className="text-2xl text-purple-600">
+              {selectedModule.examType}
+            </CardTitle>
+            <p className="text-gray-600">
+              Exam Period: {new Date(selectedModule.startDate).toLocaleDateString()} - {new Date(selectedModule.endDate).toLocaleDateString()}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">All Subjects</h3>
+              {selectedModule.exams.map((exam) => {
+                const daysUntil = getDaysUntilExam(exam.date);
+                const urgencyBadge = getUrgencyBadge(daysUntil);
+                
+                return (
+                  <div
+                    key={exam.id}
+                    className={`card-3d p-4 border-l-4 ${getUrgencyColor(daysUntil)} cursor-pointer hover:shadow-lg transition-shadow`}
+                    onClick={() => setSelectedExam(exam)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h4 className="text-lg font-bold text-gray-800">
+                            {exam.subject}
+                          </h4>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${urgencyBadge.color}`}>
+                            {urgencyBadge.text}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(exam.date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.time}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <MapPin className="w-4 h-4" />
+                            <span>{exam.location}</span>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-purple-600 font-medium mt-2">
+                          {exam.type}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Main View - Show Exam Modules
   return (
     <div className="space-y-6">
-      {/* Exam Schedule */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Upcoming Exams</h2>
-        {exams.map((exam) => {
-          const daysUntil = getDaysUntilExam(exam.date);
+        <h2 className="text-2xl font-bold text-gray-800">Exam Modules</h2>
+        {examModules.map((module, index) => {
+          // Get the earliest exam date from this module to determine urgency
+          const earliestExam = module.exams.reduce((earliest, exam) => 
+            new Date(exam.date) < new Date(earliest.date) ? exam : earliest
+          );
+          const daysUntil = getDaysUntilExam(earliestExam.date);
           const urgencyBadge = getUrgencyBadge(daysUntil);
           
           return (
             <div
-              key={exam.id}
-              className={`card-3d p-6 border-l-4 ${getUrgencyColor(daysUntil)} animate-fade-in cursor-pointer hover:shadow-lg transition-shadow`}
-              onClick={() => setSelectedExam(exam)}
+              key={index}
+              className={`card-3d p-6 border-l-4 ${getUrgencyColor(daysUntil)} cursor-pointer hover:shadow-lg transition-shadow animate-fade-in`}
+              onClick={() => setSelectedModule(module)}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
+                    <BookOpen className="w-6 h-6 text-purple-600" />
                     <h3 className="text-xl font-bold text-gray-800">
-                      {exam.subject}
+                      {module.examType}
                     </h3>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${urgencyBadge.color}`}>
                       {urgencyBadge.text}
                     </span>
                   </div>
                   
-                  <p className="text-purple-600 font-medium mb-3">
-                    {exam.examType}
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                     <div className="flex items-center space-x-2 text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{new Date(exam.date).toLocaleDateString()}</span>
+                      <span>Period: {new Date(module.startDate).toLocaleDateString()} - {new Date(module.endDate).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      <span>{exam.time}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span>{exam.location}</span>
+                      <FileText className="w-4 h-4" />
+                      <span>{module.exams.length} Subject{module.exams.length > 1 ? 's' : ''}</span>
                     </div>
                   </div>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {module.exams.map((exam, examIndex) => (
+                      <span
+                        key={examIndex}
+                        className="px-2 py-1 bg-purple-50 text-purple-700 text-sm rounded-md"
+                      >
+                        {exam.subject}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="text-sm text-gray-500">
-                <span>Exam Period: {new Date(exam.startDate).toLocaleDateString()} - {new Date(exam.endDate).toLocaleDateString()}</span>
               </div>
             </div>
           );
