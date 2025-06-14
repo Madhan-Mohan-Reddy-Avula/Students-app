@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, User, Mail, MessageSquare, Send } from 'lucide-react';
+import { X, User, Mail, MessageSquare, Send, Music, Drama, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 interface EventInterestFormProps {
@@ -24,14 +25,32 @@ interface FormData {
   email: string;
   phone: string;
   message: string;
+  participationType?: string;
+  skillLevel?: string;
+  groupSize?: string;
 }
+
+// Mock user data - in a real app, this would come from authentication/user context
+const mockUserData = {
+  name: 'John Smith',
+  email: 'john.smith@email.com',
+  phone: '+1 234 567 8900'
+};
 
 const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose }) => {
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<FormData>();
+
+  // Auto-fill user data on component mount
+  useEffect(() => {
+    setValue('name', mockUserData.name);
+    setValue('email', mockUserData.email);
+    setValue('phone', mockUserData.phone);
+  }, [setValue]);
+
+  const participationType = watch('participationType');
 
   const onSubmit = (data: FormData) => {
-    // Simulate form submission
     console.log('Form submitted:', { ...data, eventId: event.id });
     
     toast({
@@ -42,6 +61,51 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
     reset();
     onClose();
   };
+
+  const getCulturalOptions = () => {
+    if (event.category === 'Cultural') {
+      return [
+        { value: 'music', label: 'Music Performance', icon: Music },
+        { value: 'dance', label: 'Dance Performance', icon: Drama },
+        { value: 'script', label: 'Script/Drama', icon: Mic },
+        { value: 'singing', label: 'Singing', icon: Music },
+        { value: 'instrumental', label: 'Instrumental', icon: Music },
+        { value: 'poetry', label: 'Poetry/Recitation', icon: Mic },
+        { value: 'art', label: 'Art Display', icon: Drama }
+      ];
+    }
+    return [];
+  };
+
+  const getSportsOptions = () => {
+    if (event.category === 'Sports') {
+      return [
+        { value: 'individual', label: 'Individual Events' },
+        { value: 'team', label: 'Team Events' },
+        { value: 'track', label: 'Track & Field' },
+        { value: 'games', label: 'Indoor Games' }
+      ];
+    }
+    return [];
+  };
+
+  const getAcademicOptions = () => {
+    if (event.category === 'Academic') {
+      return [
+        { value: 'presentation', label: 'Presentation' },
+        { value: 'project', label: 'Project Display' },
+        { value: 'competition', label: 'Competition' },
+        { value: 'workshop', label: 'Workshop Attendance' }
+      ];
+    }
+    return [];
+  };
+
+  const getEventSpecificOptions = () => {
+    return [...getCulturalOptions(), ...getSportsOptions(), ...getAcademicOptions()];
+  };
+
+  const eventOptions = getEventSpecificOptions();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -120,6 +184,69 @@ const EventInterestForm: React.FC<EventInterestFormProps> = ({ event, onClose })
                 <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
               )}
             </div>
+
+            {/* Event-specific participation options */}
+            {eventOptions.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Participation Type
+                </label>
+                <Select onValueChange={(value) => setValue('participationType', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select participation type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {eventOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center space-x-2">
+                          {option.icon && <option.icon className="w-4 h-4" />}
+                          <span>{option.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Additional options based on participation type */}
+            {participationType && event.category === 'Cultural' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Experience Level
+                </label>
+                <Select onValueChange={(value) => setValue('skillLevel', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your experience level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="professional">Professional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {participationType && ['music', 'dance', 'script'].includes(participationType) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Group Size
+                </label>
+                <Select onValueChange={(value) => setValue('groupSize', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Are you participating solo or in a group?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solo">Solo Performance</SelectItem>
+                    <SelectItem value="duo">Duo (2 people)</SelectItem>
+                    <SelectItem value="small">Small Group (3-5 people)</SelectItem>
+                    <SelectItem value="large">Large Group (6+ people)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
