@@ -2,35 +2,80 @@
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, Clock, MapPin, AlertCircle, BookOpen } from 'lucide-react';
 
 const Timetable = () => {
-  // Class Timetable Data
+  // Class Timetable Data - updated to include date
   const [classSchedule] = useState([
     {
       day: 'Monday',
+      date: '2024-06-17',
       periods: [
-        { time: '09:00-09:45', subject: 'Mathematics', teacher: 'Mr. Smith', room: '101' },
-        { time: '09:45-10:30', subject: 'English', teacher: 'Ms. Johnson', room: '205' },
-        { time: '10:30-10:45', subject: 'Break', teacher: '', room: '' },
-        { time: '10:45-11:30', subject: 'Science', teacher: 'Dr. Brown', room: 'Lab 3' },
-        { time: '11:30-12:15', subject: 'History', teacher: 'Mr. Davis', room: '150' },
-        { time: '12:15-01:00', subject: 'Lunch Break', teacher: '', room: '' },
-        { time: '01:00-01:45', subject: 'Geography', teacher: 'Ms. Wilson', room: '302' },
-        { time: '01:45-02:30', subject: 'Physical Education', teacher: 'Coach Miller', room: 'Playground' }
+        { time: '09:00-09:45', subject: 'Mathematics', faculty: 'Mr. Smith' },
+        { time: '09:45-10:30', subject: 'English', faculty: 'Ms. Johnson' },
+        { time: '10:30-10:45', subject: 'Break', faculty: '' },
+        { time: '10:45-11:30', subject: 'Science', faculty: 'Dr. Brown' },
+        { time: '11:30-12:15', subject: 'History', faculty: 'Mr. Davis' },
+        { time: '12:15-01:00', subject: 'Lunch Break', faculty: '' },
+        { time: '01:00-01:45', subject: 'Geography', faculty: 'Ms. Wilson' },
+        { time: '01:45-02:30', subject: 'Physical Education', faculty: 'Coach Miller' }
       ]
     },
     {
       day: 'Tuesday',
+      date: '2024-06-18',
       periods: [
-        { time: '09:00-09:45', subject: 'Science', teacher: 'Dr. Brown', room: 'Lab 3' },
-        { time: '09:45-10:30', subject: 'Mathematics', teacher: 'Mr. Smith', room: '101' },
-        { time: '10:30-10:45', subject: 'Break', teacher: '', room: '' },
-        { time: '10:45-11:30', subject: 'English', teacher: 'Ms. Johnson', room: '205' },
-        { time: '11:30-12:15', subject: 'Art', teacher: 'Ms. Garcia', room: 'Art Room' },
-        { time: '12:15-01:00', subject: 'Lunch Break', teacher: '', room: '' },
-        { time: '01:00-01:45', subject: 'Music', teacher: 'Mr. Taylor', room: 'Music Room' },
-        { time: '01:45-02:30', subject: 'Computer Science', teacher: 'Mr. Anderson', room: 'Computer Lab' }
+        { time: '09:00-09:45', subject: 'Science', faculty: 'Dr. Brown' },
+        { time: '09:45-10:30', subject: 'Mathematics', faculty: 'Mr. Smith' },
+        { time: '10:30-10:45', subject: 'Break', faculty: '' },
+        { time: '10:45-11:30', subject: 'English', faculty: 'Ms. Johnson' },
+        { time: '11:30-12:15', subject: 'Art', faculty: 'Ms. Garcia' },
+        { time: '12:15-01:00', subject: 'Lunch Break', faculty: '' },
+        { time: '01:00-01:45', subject: 'Music', faculty: 'Mr. Taylor' },
+        { time: '01:45-02:30', subject: 'Computer Science', faculty: 'Mr. Anderson' }
+      ]
+    },
+    {
+      day: 'Wednesday',
+      date: '2024-06-19',
+      periods: [
+        { time: '09:00-09:45', subject: 'English', faculty: 'Ms. Johnson' },
+        { time: '09:45-10:30', subject: 'History', faculty: 'Mr. Davis' },
+        { time: '10:30-10:45', subject: 'Break', faculty: '' },
+        { time: '10:45-11:30', subject: 'Mathematics', faculty: 'Mr. Smith' },
+        { time: '11:30-12:15', subject: 'Science', faculty: 'Dr. Brown' },
+        { time: '12:15-01:00', subject: 'Lunch Break', faculty: '' },
+        { time: '01:00-01:45', subject: 'Physical Education', faculty: 'Coach Miller' },
+        { time: '01:45-02:30', subject: 'Geography', faculty: 'Ms. Wilson' }
+      ]
+    },
+    {
+      day: 'Thursday',
+      date: '2024-06-20',
+      periods: [
+        { time: '09:00-09:45', subject: 'History', faculty: 'Mr. Davis' },
+        { time: '09:45-10:30', subject: 'Science', faculty: 'Dr. Brown' },
+        { time: '10:30-10:45', subject: 'Break', faculty: '' },
+        { time: '10:45-11:30', subject: 'Geography', faculty: 'Ms. Wilson' },
+        { time: '11:30-12:15', subject: 'English', faculty: 'Ms. Johnson' },
+        { time: '12:15-01:00', subject: 'Lunch Break', faculty: '' },
+        { time: '01:00-01:45', subject: 'Mathematics', faculty: 'Mr. Smith' },
+        { time: '01:45-02:30', subject: 'Art', faculty: 'Ms. Garcia' }
+      ]
+    },
+    {
+      day: 'Friday',
+      date: '2024-06-21',
+      periods: [
+        { time: '09:00-09:45', subject: 'Computer Science', faculty: 'Mr. Anderson' },
+        { time: '09:45-10:30', subject: 'Mathematics', faculty: 'Mr. Smith' },
+        { time: '10:30-10:45', subject: 'Break', faculty: '' },
+        { time: '10:45-11:30', subject: 'Music', faculty: 'Mr. Taylor' },
+        { time: '11:30-12:15', subject: 'Physical Education', faculty: 'Coach Miller' },
+        { time: '12:15-01:00', subject: 'Lunch Break', faculty: '' },
+        { time: '01:00-01:45', subject: 'English', faculty: 'Ms. Johnson' },
+        { time: '01:45-02:30', subject: 'Science', faculty: 'Dr. Brown' }
       ]
     }
   ]);
@@ -121,46 +166,56 @@ const Timetable = () => {
           </TabsList>
 
           <TabsContent value="class" className="space-y-6">
-            {classSchedule.map((daySchedule) => (
-              <div key={daySchedule.day} className="card-3d p-6 animate-fade-in">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 border-b border-purple-100 pb-2">
-                  {daySchedule.day}
-                </h3>
-                <div className="grid gap-3">
-                  {daySchedule.periods.map((period, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                        period.subject === 'Break' || period.subject === 'Lunch Break'
-                          ? 'bg-gray-50 text-gray-600'
-                          : 'bg-white border border-purple-100 hover:bg-purple-50'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 text-purple-600 font-medium">
-                          <Clock className="w-4 h-4" />
-                          <span>{period.time}</span>
-                        </div>
-                        <div className="font-semibold text-gray-800">
-                          {period.subject}
-                        </div>
-                      </div>
-                      {period.teacher && (
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>{period.teacher}</span>
-                          {period.room && (
-                            <div className="flex items-center space-x-1">
-                              <MapPin className="w-3 h-3" />
-                              <span>{period.room}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+            <div className="card-3d p-6 animate-fade-in">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">Weekly Class Schedule</h3>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-bold text-purple-700">DAY</TableHead>
+                      <TableHead className="font-bold text-purple-700">DATE</TableHead>
+                      <TableHead className="font-bold text-purple-700">SUBJECT</TableHead>
+                      <TableHead className="font-bold text-purple-700">TIME</TableHead>
+                      <TableHead className="font-bold text-purple-700">FACULTY</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {classSchedule.map((daySchedule) => (
+                      daySchedule.periods.map((period, index) => (
+                        <TableRow 
+                          key={`${daySchedule.day}-${index}`}
+                          className={`${
+                            period.subject === 'Break' || period.subject === 'Lunch Break'
+                              ? 'bg-gray-50'
+                              : 'hover:bg-purple-50'
+                          }`}
+                        >
+                          <TableCell className="font-medium">
+                            {index === 0 ? daySchedule.day : ''}
+                          </TableCell>
+                          <TableCell>
+                            {index === 0 ? new Date(daySchedule.date).toLocaleDateString() : ''}
+                          </TableCell>
+                          <TableCell className={`font-semibold ${
+                            period.subject === 'Break' || period.subject === 'Lunch Break' 
+                              ? 'text-gray-600 italic' 
+                              : 'text-gray-800'
+                          }`}>
+                            {period.subject}
+                          </TableCell>
+                          <TableCell className="text-purple-600 font-medium">
+                            {period.time}
+                          </TableCell>
+                          <TableCell className="text-gray-700">
+                            {period.faculty || '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="exam" className="space-y-6">
