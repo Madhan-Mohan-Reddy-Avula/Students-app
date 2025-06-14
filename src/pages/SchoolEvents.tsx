@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import EventInterestForm from '@/components/EventInterestForm';
@@ -16,6 +15,9 @@ interface Event {
   category: string;
   participants_info: string;
   is_featured: boolean;
+  // Add required properties for EventInterestForm compatibility
+  date?: string;
+  time?: string;
 }
 
 const SchoolEvents = () => {
@@ -72,7 +74,13 @@ const SchoolEvents = () => {
   };
 
   const handleEventClick = (event: Event) => {
-    setSelectedEvent(event);
+    // Transform event to match EventInterestForm expectations
+    const eventForForm = {
+      ...event,
+      date: event.event_date,
+      time: event.start_time || ''
+    };
+    setSelectedEvent(eventForForm);
   };
 
   const handleCloseForm = () => {
