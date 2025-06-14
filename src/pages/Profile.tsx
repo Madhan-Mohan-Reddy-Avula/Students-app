@@ -191,7 +191,7 @@ const Profile = () => {
             <div className="space-y-2">
               <InfoRow label="Email Address" value={studentData.email} />
               <InfoRow label="Phone Number" value={studentData.phone || 'Not provided'} />
-              <InfoRow label="Emergency Contact" value="Not available"} />
+              <InfoRow label="Emergency Contact" value="Not available" />
             </div>
           </InfoCard>
 
