@@ -4,15 +4,37 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import usersData from '../data/users.json';
 
 const Login = () => {
   const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Login attempted with:', { rollNumber, password });
-    // Login logic will be implemented when backend is connected
+    
+    // Check credentials against dummy data
+    const user = usersData.users.find(
+      u => u.rollNumber === rollNumber && u.password === password
+    );
+
+    if (user) {
+      toast.success(`Welcome back, ${user.name}!`);
+      console.log('Login successful for user:', user);
+      
+      // Store user data in localStorage for the session
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
+      // Navigate to profile page
+      navigate('/profile');
+    } else {
+      toast.error('Invalid roll number or password');
+      console.log('Login failed: Invalid credentials');
+    }
   };
 
   return (
@@ -79,6 +101,16 @@ const Login = () => {
               Login
             </Button>
           </form>
+
+          {/* Demo Credentials */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><strong>Roll:</strong> CS001 | <strong>Pass:</strong> password123</p>
+              <p><strong>Roll:</strong> ME002 | <strong>Pass:</strong> student456</p>
+              <p><strong>Roll:</strong> IT004 | <strong>Pass:</strong> test123</p>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="text-center mt-6 text-sm text-gray-500">
