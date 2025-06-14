@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
 
 const Homework = () => {
   const [assignments] = useState([
