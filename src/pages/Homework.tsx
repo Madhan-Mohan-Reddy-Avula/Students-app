@@ -1,8 +1,15 @@
+
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen, CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const Homework = () => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [assignments] = useState([
     {
       id: 1,
@@ -81,13 +88,48 @@ const Homework = () => {
     }
   };
 
+  // Filter assignments based on selected date
+  const filteredAssignments = selectedDate 
+    ? assignments.filter(assignment => {
+        const assignmentDate = new Date(assignment.dueDate);
+        return assignmentDate.toDateString() === selectedDate.toDateString();
+      })
+    : assignments;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
       <NavigationHeader title="Homework" subtitle="Track your assignments and deadlines" />
       
       <div className="max-w-6xl mx-auto p-6">
+        {/* Date Picker */}
+        <div className="mb-6">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[280px] justify-start text-left font-normal card-3d",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="grid gap-6">
-          {assignments.map((assignment) => (
+          {filteredAssignments.map((assignment) => (
             <div
               key={assignment.id}
               className={`card-3d p-6 border-l-4 ${getPriorityColor(assignment.priority)} animate-fade-in`}
@@ -128,13 +170,20 @@ const Homework = () => {
           ))}
         </div>
         
-        {assignments.length === 0 && (
+        {filteredAssignments.length === 0 && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No assignments yet</h3>
-            <p className="text-gray-600">Your homework assignments will appear here.</p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              {selectedDate ? 'No assignments for this date' : 'No assignments yet'}
+            </h3>
+            <p className="text-gray-600">
+              {selectedDate 
+                ? `No homework assignments are due on ${format(selectedDate, "PPP")}.`
+                : 'Your homework assignments will appear here.'
+              }
+            </p>
           </div>
         )}
       </div>
