@@ -6,34 +6,56 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import usersData from '../data/users.json';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     console.log('Login attempted with:', { rollNumber, password });
     
-    // Check credentials against dummy data
-    const user = usersData.users.find(
-      u => u.rollNumber === rollNumber && u.password === password
-    );
+    try {
+      // Check credentials against Supabase profiles table
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('roll_number', rollNumber)
+        .single();
 
-    if (user) {
-      toast.success(`Welcome back, ${user.name}!`);
-      console.log('Login successful for user:', user);
+      if (error || !profile) {
+        toast.error('Invalid roll number or password');
+        console.log('Login failed: Profile not found');
+        setIsLoading(false);
+        return;
+      }
+
+      // For demo purposes, we'll use a simple password check
+      // In a real app, passwords should be properly hashed
+      const validPassword = 'student123'; // Demo password for all students
       
-      // Store user data in localStorage for the session
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Navigate to profile page
-      navigate('/profile');
-    } else {
-      toast.error('Invalid roll number or password');
-      console.log('Login failed: Invalid credentials');
+      if (password === validPassword) {
+        toast.success(`Welcome back, ${profile.name}!`);
+        console.log('Login successful for user:', profile);
+        
+        // Store user data in localStorage for the session
+        localStorage.setItem('currentUser', JSON.stringify(profile));
+        
+        // Navigate to profile page
+        navigate('/profile');
+      } else {
+        toast.error('Invalid roll number or password');
+        console.log('Login failed: Invalid password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,9 +118,10 @@ const Login = () => {
             {/* Login Button */}
             <Button 
               type="submit" 
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-200"
             >
-              Login
+              {isLoading ? 'Signing in...' : 'Login'}
             </Button>
           </form>
 
@@ -106,9 +129,11 @@ const Login = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Roll:</strong> CS001 | <strong>Pass:</strong> password123</p>
-              <p><strong>Roll:</strong> ME002 | <strong>Pass:</strong> student456</p>
-              <p><strong>Roll:</strong> IT004 | <strong>Pass:</strong> test123</p>
+              <p><strong>Roll:</strong> CS2021001 | <strong>Pass:</strong> student123</p>
+              <p><strong>Roll:</strong> CS2021002 | <strong>Pass:</strong> student123</p>
+              <p><strong>Roll:</strong> EE2021001 | <strong>Pass:</strong> student123</p>
+              <p><strong>Roll:</strong> ME2021001 | <strong>Pass:</strong> student123</p>
+              <p><strong>Roll:</strong> CS2022001 | <strong>Pass:</strong> student123</p>
             </div>
           </div>
 
