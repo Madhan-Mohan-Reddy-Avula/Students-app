@@ -31,7 +31,7 @@ const Login = () => {
         console.error('Error fetching all profiles:', allProfilesError);
       }
 
-      // Check credentials against Supabase profiles table
+      // Check credentials against Supabase profiles table - remove .single() and use array query
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
