@@ -18,32 +18,60 @@ interface StudentResult {
   total_students: number;
 }
 
+interface StudentProfile {
+  id: string;
+  name: string;
+  roll_number: string;
+}
+
 const Results = () => {
   const [results, setResults] = useState<StudentResult[]>([]);
+  const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchResults();
+    fetchStudentAndResults();
   }, []);
 
-  const fetchResults = async () => {
+  const fetchStudentAndResults = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('student_results')
-        .select('*')
-        .order('exam_date', { ascending: false });
+      
+      // Get the first student profile (Alex Thompson)
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, name, roll_number')
+        .eq('roll_number', 'CS2021001')
+        .single();
 
-      if (error) {
-        console.error('Error fetching results:', error);
-        toast.error('Failed to load results');
+      if (profileError) {
+        console.error('Error fetching student profile:', profileError);
+        toast.error('Failed to load student profile');
         return;
       }
 
-      setResults(data || []);
+      if (profiles) {
+        setStudent(profiles);
+        
+        // Fetch results for this student
+        const { data: resultsData, error: resultsError } = await supabase
+          .from('student_results')
+          .select('*')
+          .eq('user_id', profiles.id)
+          .order('exam_date', { ascending: false });
+
+        if (resultsError) {
+          console.error('Error fetching results:', resultsError);
+          toast.error('Failed to load results');
+          return;
+        }
+
+        setResults(resultsData || []);
+        console.log('Loaded results for student:', profiles.name, resultsData);
+      }
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load results');
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -123,9 +151,17 @@ const Results = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
-      <NavigationHeader title="Results" subtitle="Check your academic performance" />
+      <NavigationHeader title="Results" subtitle={student ? `Academic Performance - ${student.name}` : "Check your academic performance"} />
       
       <div className="max-w-6xl mx-auto p-6">
+        {student && (
+          <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Results for {student.name} ({student.roll_number})
+            </h2>
+          </div>
+        )}
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card-3d p-6 text-center">
@@ -241,7 +277,9 @@ const Results = () => {
               <Award className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">No results available</h3>
-            <p className="text-gray-600">Your exam results will appear here.</p>
+            <p className="text-gray-600">
+              {student ? `No exam results found for ${student.name}.` : 'Your exam results will appear here.'}
+            </p>
           </div>
         )}
       </div>
