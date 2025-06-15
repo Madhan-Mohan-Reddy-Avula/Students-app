@@ -20,17 +20,6 @@ const Login = () => {
     console.log('Login attempted with:', { rollNumber, password });
     
     try {
-      // First, let's check what profiles exist in the database
-      const { data: allProfiles, error: allProfilesError } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      console.log('All profiles in database:', allProfiles);
-      
-      if (allProfilesError) {
-        console.error('Error fetching all profiles:', allProfilesError);
-      }
-
       // Check credentials against Supabase profiles table - remove .single() and use array query
       const { data: profiles, error } = await supabase
         .from('profiles')
@@ -56,11 +45,8 @@ const Login = () => {
 
       const profile = profiles[0];
 
-      // For demo purposes, we'll use a simple password check
-      // In a real app, passwords should be properly hashed
-      const validPassword = 'student123'; // Demo password for all students
-      
-      if (password === validPassword) {
+      // Check password against the password_hash field in the database
+      if (password === profile.password_hash) {
         toast.success(`Welcome back, ${profile.name}!`);
         console.log('Login successful for user:', profile);
         
