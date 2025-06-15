@@ -42,9 +42,9 @@ export const useProfile = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        // No user is logged in, redirect to login page
-        console.log('No authenticated user found, redirecting to login');
-        navigate('/login');
+        // No user is logged in, fetch demo data instead
+        console.log('No authenticated user found, using demo profile data');
+        await fetchDemoProfile();
         return;
       }
 
@@ -52,20 +52,20 @@ export const useProfile = () => {
       console.log('Authenticated user found:', session.user);
       
       // Fetch user profile data
-      await fetchStudentProfile();
+      await fetchStudentProfile(session.user.id);
       
     } catch (error) {
       console.error('Auth check error:', error);
-      navigate('/login');
+      // Fallback to demo data if there's an error
+      await fetchDemoProfile();
     }
   };
 
-  const fetchStudentProfile = async () => {
+  const fetchDemoProfile = async () => {
     try {
       setLoading(true);
       
-      // For demo purposes, we'll fetch the first profile
-      // In a real app, this would be based on the authenticated user
+      // Fetch the first profile for demo purposes
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -73,7 +73,7 @@ export const useProfile = () => {
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        console.error('Error fetching demo profile:', profileError);
         toast.error('Failed to load profile data');
         return;
       }
@@ -96,6 +96,49 @@ export const useProfile = () => {
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStudentProfile = async (userId: string) => {
+    try {
+      setLoading(true);
+      
+      // Fetch the authenticated user's profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        // If user profile doesn't exist, fall back to demo data
+        await fetchDemoProfile();
+        return;
+      }
+
+      setStudentData(profile);
+
+      // Fetch class information if class_id exists
+      if (profile?.class_id) {
+        const { data: classData, error: classError } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('id', profile.class_id)
+          .single();
+
+        if (!classError && classData) {
+          setClassInfo(classData);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to load profile data');
+      // Fallback to demo data
+      await fetchDemoProfile();
     } finally {
       setLoading(false);
     }
