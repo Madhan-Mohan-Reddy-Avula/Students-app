@@ -33,85 +33,58 @@ export const useProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDemoProfile();
+    fetchStudentProfiles();
   }, []);
 
-  const fetchDemoProfile = async () => {
+  const fetchStudentProfiles = async () => {
     try {
       setLoading(true);
       
-      // Create demo profile data since database constraints prevent direct insertion
-      const demoProfile: StudentProfile = {
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        roll_number: 'CS2021001',
-        name: 'Alex Thompson',
-        email: 'alex.thompson@student.university.edu',
-        department: 'Computer Science',
-        year: 3,
-        phone: '+1-555-9876',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        class_id: 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      // Fetch all student profiles from the database
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-      setStudentData(demoProfile);
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        toast.error('Error loading student profiles');
+        return;
+      }
 
-      // Try to fetch class information from database
-      try {
-        const { data: classData, error: classError } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('id', demoProfile.class_id)
-          .single();
+      if (profiles && profiles.length > 0) {
+        // Use the first profile as the current student
+        const currentProfile = profiles[0];
+        console.log('Loaded profile:', currentProfile);
+        
+        setStudentData(currentProfile);
 
-        if (!classError && classData) {
-          setClassInfo(classData);
-        } else {
-          // Fallback to demo class data
-          setClassInfo({
-            id: 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
-            name: 'Computer Science - 3rd Year',
-            section: 'A',
-            year: 3
-          });
+        // Fetch class information if class_id exists
+        if (currentProfile.class_id) {
+          try {
+            const { data: classData, error: classError } = await supabase
+              .from('classes')
+              .select('*')
+              .eq('id', currentProfile.class_id)
+              .single();
+
+            if (!classError && classData) {
+              setClassInfo(classData);
+            } else {
+              console.log('No class found for class_id:', currentProfile.class_id);
+            }
+          } catch (classError) {
+            console.log('Error fetching class info:', classError);
+          }
         }
-      } catch (classError) {
-        console.log('Using demo class data due to database issue');
-        // Fallback to demo class data
-        setClassInfo({
-          id: 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
-          name: 'Computer Science - 3rd Year',
-          section: 'A',
-          year: 3
-        });
+      } else {
+        console.log('No profiles found in database');
+        toast.error('No student profiles found');
       }
 
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Using demo profile data');
-      
-      // Fallback profile if everything fails
-      setStudentData({
-        id: '550e8400-e29b-41d4-a716-446655440000',
-        roll_number: 'CS2021001',
-        name: 'Alex Thompson',
-        email: 'alex.thompson@student.university.edu',
-        department: 'Computer Science',
-        year: 3,
-        phone: '+1-555-9876',
-        avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        class_id: 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-      
-      setClassInfo({
-        id: 'c1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6',
-        name: 'Computer Science - 3rd Year',
-        section: 'A',
-        year: 3
-      });
+      console.error('Error fetching student profiles:', error);
+      toast.error('Failed to load student data');
     } finally {
       setLoading(false);
     }
