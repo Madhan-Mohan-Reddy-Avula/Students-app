@@ -20,19 +20,41 @@ const Login = () => {
     console.log('Login attempted with:', { rollNumber, password });
     
     try {
+      // First, let's check what profiles exist in the database
+      const { data: allProfiles, error: allProfilesError } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      console.log('All profiles in database:', allProfiles);
+      
+      if (allProfilesError) {
+        console.error('Error fetching all profiles:', allProfilesError);
+      }
+
       // Check credentials against Supabase profiles table
-      const { data: profile, error } = await supabase
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('roll_number', rollNumber)
-        .single();
+        .eq('roll_number', rollNumber);
 
-      if (error || !profile) {
-        toast.error('Invalid roll number or password');
-        console.log('Login failed: Profile not found');
+      console.log('Matching profiles:', profiles);
+      console.log('Query error:', error);
+
+      if (error) {
+        console.error('Database error:', error);
+        toast.error('Database error occurred');
         setIsLoading(false);
         return;
       }
+
+      if (!profiles || profiles.length === 0) {
+        toast.error('Invalid roll number or password');
+        console.log('Login failed: No profile found for roll number:', rollNumber);
+        setIsLoading(false);
+        return;
+      }
+
+      const profile = profiles[0];
 
       // For demo purposes, we'll use a simple password check
       // In a real app, passwords should be properly hashed
