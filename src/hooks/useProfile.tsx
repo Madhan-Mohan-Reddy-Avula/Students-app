@@ -33,57 +33,80 @@ export const useProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchStudentProfiles();
+    fetchCurrentStudent();
   }, []);
 
-  const fetchStudentProfiles = async () => {
+  const fetchCurrentStudent = async () => {
     try {
       setLoading(true);
       
-      // Fetch all student profiles from the database
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        toast.error('Error loading student profiles');
-        return;
-      }
-
-      if (profiles && profiles.length > 0) {
-        // Use the first profile as the current student
-        const currentProfile = profiles[0];
-        console.log('Loaded profile:', currentProfile);
-        
-        setStudentData(currentProfile);
+      // Try to get current user from localStorage first
+      const currentUser = localStorage.getItem('currentUser');
+      
+      if (currentUser) {
+        const profile = JSON.parse(currentUser);
+        console.log('Loaded profile from localStorage:', profile);
+        setStudentData(profile);
 
         // Fetch class information if class_id exists
-        if (currentProfile.class_id) {
+        if (profile.class_id) {
           try {
             const { data: classData, error: classError } = await supabase
               .from('classes')
               .select('*')
-              .eq('id', currentProfile.class_id)
+              .eq('id', profile.class_id)
               .single();
 
             if (!classError && classData) {
               setClassInfo(classData);
-            } else {
-              console.log('No class found for class_id:', currentProfile.class_id);
             }
           } catch (classError) {
             console.log('Error fetching class info:', classError);
           }
         }
       } else {
-        console.log('No profiles found in database');
-        toast.error('No student profiles found');
+        // Fallback: fetch the first profile from the database
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          toast.error('Error loading student profiles');
+          return;
+        }
+
+        if (profiles && profiles.length > 0) {
+          const currentProfile = profiles[0];
+          console.log('Loaded fallback profile:', currentProfile);
+          
+          setStudentData(currentProfile);
+
+          // Fetch class information if class_id exists
+          if (currentProfile.class_id) {
+            try {
+              const { data: classData, error: classError } = await supabase
+                .from('classes')
+                .select('*')
+                .eq('id', currentProfile.class_id)
+                .single();
+
+              if (!classError && classData) {
+                setClassInfo(classData);
+              }
+            } catch (classError) {
+              console.log('Error fetching class info:', classError);
+            }
+          }
+        } else {
+          console.log('No profiles found in database');
+          toast.error('No student profiles found');
+        }
       }
 
     } catch (error) {
-      console.error('Error fetching student profiles:', error);
+      console.error('Error fetching student profile:', error);
       toast.error('Failed to load student data');
     } finally {
       setLoading(false);

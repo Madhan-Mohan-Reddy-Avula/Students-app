@@ -1,7 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
-import { TrendingUp, TrendingDown, Award, Target } from 'lucide-react';
+import ResultsModuleCard from '@/components/ResultsModuleCard';
+import ResultsChart from '@/components/ResultsChart';
+import ModuleDetailView from '@/components/ModuleDetailView';
+import { TrendingUp, Award, Target, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -24,10 +27,31 @@ interface StudentProfile {
   roll_number: string;
 }
 
+interface Module {
+  id: string;
+  name: string;
+  period: string;
+  subjects: Array<{
+    name: string;
+    score: number;
+    previousScore?: number;
+    grade: string;
+    examType: string;
+    examDate: string;
+    rank: number;
+    totalStudents: number;
+  }>;
+  averageScore: number;
+  overallGrade: string;
+}
+
 const Results = () => {
   const [results, setResults] = useState<StudentResult[]>([]);
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+  const [showModuleDetail, setShowModuleDetail] = useState(false);
 
   useEffect(() => {
     fetchStudentAndResults();
@@ -37,27 +61,36 @@ const Results = () => {
     try {
       setLoading(true);
       
-      // Get the first student profile (Alex Thompson)
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, name, roll_number')
-        .eq('roll_number', 'CS2021001')
-        .single();
+      // Try to get current user from localStorage first
+      const currentUser = localStorage.getItem('currentUser');
+      let currentStudent = null;
+      
+      if (currentUser) {
+        currentStudent = JSON.parse(currentUser);
+      } else {
+        // Fallback to first student (Alex Thompson)
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, roll_number')
+          .eq('roll_number', 'CS2021001')
+          .single();
 
-      if (profileError) {
-        console.error('Error fetching student profile:', profileError);
-        toast.error('Failed to load student profile');
-        return;
+        if (profileError) {
+          console.error('Error fetching student profile:', profileError);
+          toast.error('Failed to load student profile');
+          return;
+        }
+        currentStudent = profiles;
       }
 
-      if (profiles) {
-        setStudent(profiles);
+      if (currentStudent) {
+        setStudent(currentStudent);
         
         // Fetch results for this student
         const { data: resultsData, error: resultsError } = await supabase
           .from('student_results')
           .select('*')
-          .eq('user_id', profiles.id)
+          .eq('user_id', currentStudent.id)
           .order('exam_date', { ascending: false });
 
         if (resultsError) {
@@ -67,7 +100,10 @@ const Results = () => {
         }
 
         setResults(resultsData || []);
-        console.log('Loaded results for student:', profiles.name, resultsData);
+        console.log('Loaded results for student:', currentStudent.name, resultsData);
+        
+        // Process results into modules
+        processResultsIntoModules(resultsData || []);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -77,43 +113,78 @@ const Results = () => {
     }
   };
 
-  const getGradeColor = (grade: string) => {
-    if (!grade) return 'bg-gray-100 text-gray-800';
-    switch (grade.charAt(0)) {
-      case 'A':
-        return 'bg-green-100 text-green-800';
-      case 'B':
-        return 'bg-blue-100 text-blue-800';
-      case 'C':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'D':
-        return 'bg-orange-100 text-orange-800';
-      case 'F':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTrendIcon = (current: number, previous: number) => {
-    if (!previous) return null;
-    if (current > previous) {
-      return <TrendingUp className="w-4 h-4 text-green-500" />;
-    } else if (current < previous) {
-      return <TrendingDown className="w-4 h-4 text-red-500" />;
-    }
-    return null;
-  };
-
-  const getTrendText = (current: number, previous: number) => {
-    if (!previous) return 'First exam';
-    const diff = current - previous;
-    if (diff > 0) {
-      return `+${diff.toFixed(1)} points`;
-    } else if (diff < 0) {
-      return `${diff.toFixed(1)} points`;
-    }
-    return 'No change';
+  const processResultsIntoModules = (resultsData: StudentResult[]) => {
+    const moduleMap = new Map<string, Module>();
+    
+    resultsData.forEach(result => {
+      const examDate = new Date(result.exam_date);
+      const year = examDate.getFullYear();
+      const month = examDate.getMonth();
+      
+      // Determine semester based on exam date
+      let semester;
+      let semesterYear;
+      if (month >= 1 && month <= 5) {
+        semester = 'Semester 1';
+        semesterYear = year;
+      } else {
+        semester = 'Semester 2';
+        semesterYear = year;
+      }
+      
+      const moduleKey = `${semester} ${semesterYear} - ${result.exam_type}`;
+      const moduleId = `${semester.toLowerCase().replace(' ', '-')}-${semesterYear}-${result.exam_type.toLowerCase().replace(' ', '-')}`;
+      
+      if (!moduleMap.has(moduleKey)) {
+        moduleMap.set(moduleKey, {
+          id: moduleId,
+          name: `${semester} ${semesterYear}`,
+          period: `${result.exam_type} - ${examDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+          subjects: [],
+          averageScore: 0,
+          overallGrade: ''
+        });
+      }
+      
+      const module = moduleMap.get(moduleKey)!;
+      module.subjects.push({
+        name: result.subject,
+        score: result.current_score,
+        previousScore: result.previous_score,
+        grade: result.current_grade,
+        examType: result.exam_type,
+        examDate: result.exam_date,
+        rank: result.class_rank,
+        totalStudents: result.total_students
+      });
+    });
+    
+    // Calculate averages and grades for each module
+    const processedModules = Array.from(moduleMap.values()).map(module => {
+      const totalScore = module.subjects.reduce((sum, subject) => sum + subject.score, 0);
+      module.averageScore = totalScore / module.subjects.length;
+      
+      // Calculate overall grade
+      if (module.averageScore >= 90) module.overallGrade = 'A+';
+      else if (module.averageScore >= 85) module.overallGrade = 'A';
+      else if (module.averageScore >= 80) module.overallGrade = 'B+';
+      else if (module.averageScore >= 75) module.overallGrade = 'B';
+      else if (module.averageScore >= 70) module.overallGrade = 'C+';
+      else if (module.averageScore >= 65) module.overallGrade = 'C';
+      else if (module.averageScore >= 60) module.overallGrade = 'D';
+      else module.overallGrade = 'F';
+      
+      return module;
+    });
+    
+    // Sort modules by date (most recent first)
+    processedModules.sort((a, b) => {
+      const dateA = new Date(a.subjects[0]?.examDate || '');
+      const dateB = new Date(b.subjects[0]?.examDate || '');
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    setModules(processedModules);
   };
 
   const getOverallGPA = () => {
@@ -130,8 +201,40 @@ const Results = () => {
     );
   };
 
+  // Generate chart data for performance trends
+  const generateChartData = () => {
+    const subjectScores = new Map<string, Array<{score: number, date: string, examType: string}>>();
+    
+    results.forEach(result => {
+      if (!subjectScores.has(result.subject)) {
+        subjectScores.set(result.subject, []);
+      }
+      subjectScores.get(result.subject)!.push({
+        score: result.current_score,
+        date: result.exam_date,
+        examType: result.exam_type
+      });
+    });
+
+    // Create performance trend data (latest 5 subjects)
+    const trendData = Array.from(subjectScores.entries())
+      .slice(0, 5)
+      .map(([subject, scores]) => {
+        const latestScore = scores.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        return {
+          name: subject,
+          myScore: latestScore.score,
+          classAverage: Math.max(60, latestScore.score - Math.random() * 15), // Simulated class average
+          topScore: Math.min(100, latestScore.score + Math.random() * 10) // Simulated top score
+        };
+      });
+
+    return trendData;
+  };
+
   const overallGPA = getOverallGPA();
   const topPerformer = getTopPerformer();
+  const chartData = generateChartData();
 
   if (loading) {
     return (
@@ -144,6 +247,24 @@ const Results = () => {
               <p className="text-gray-600">Loading results...</p>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showModuleDetail && selectedModule) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
+        <NavigationHeader 
+          title={selectedModule.name} 
+          subtitle={`Module Details - ${student?.name || 'Student'}`} 
+        />
+        <div className="max-w-6xl mx-auto p-6">
+          <ModuleDetailView
+            module={selectedModule}
+            onBack={() => setShowModuleDetail(false)}
+            studentName={student?.name || 'Student'}
+          />
         </div>
       </div>
     );
@@ -191,97 +312,61 @@ const Results = () => {
           <div className="card-3d p-6 text-center">
             <div className="flex items-center justify-center mb-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
+                <BarChart3 className="w-6 h-6 text-white" />
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-1">Subjects</h3>
-            <p className="text-3xl font-bold text-blue-600">{results.length}</p>
-            <p className="text-sm text-gray-600">Total subjects</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-1">Total Modules</h3>
+            <p className="text-3xl font-bold text-blue-600">{modules.length}</p>
+            <p className="text-sm text-gray-600">Academic periods</p>
           </div>
         </div>
 
-        {/* Results List */}
-        <div className="grid gap-6">
-          {results.map((result) => (
-            <div key={result.id} className="card-3d p-6 animate-fade-in">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-xl font-bold text-gray-800">
-                      {result.subject}
-                    </h3>
-                    {result.current_grade && (
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getGradeColor(result.current_grade)}`}>
-                        {result.current_grade}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <p className="text-purple-600 font-medium mb-3">
-                    {result.exam_type} - {new Date(result.exam_date).toLocaleDateString()}
-                  </p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-gray-800">Score</h4>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-purple-600">
-                          {result.current_score}
-                        </span>
-                        <span className="text-gray-500">/ {result.max_score}</span>
-                        {getTrendIcon(result.current_score, result.previous_score)}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {getTrendText(result.current_score, result.previous_score)}
-                      </p>
-                    </div>
-                    
-                    {result.class_rank && result.total_students && (
-                      <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-800">Class Rank</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-2xl font-bold text-blue-600">
-                            {result.class_rank}
-                          </span>
-                          <span className="text-gray-500">/ {result.total_students}</span>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {result.class_rank <= 5 ? 'Excellent position!' : 
-                           result.class_rank <= 15 ? 'Great performance' : 'Room for improvement'}
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-gray-800">Progress</h4>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div 
-                          className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-300"
-                          style={{ width: `${(result.current_score / result.max_score) * 100}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {((result.current_score / result.max_score) * 100).toFixed(1)}% of maximum score
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {results.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Award className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No results available</h3>
-            <p className="text-gray-600">
-              {student ? `No exam results found for ${student.name}.` : 'Your exam results will appear here.'}
-            </p>
+        {/* Performance Charts */}
+        {chartData.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <ResultsChart
+              data={chartData}
+              type="line"
+              title="Performance Trend"
+              studentName={student?.name || 'You'}
+            />
+            <ResultsChart
+              data={chartData}
+              type="radar"
+              title="Subject Comparison"
+              studentName={student?.name || 'You'}
+            />
           </div>
         )}
+
+        {/* Academic Modules */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-bold text-gray-800">Academic Modules</h3>
+          {modules.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {modules.map((module) => (
+                <ResultsModuleCard
+                  key={module.id}
+                  module={module}
+                  onClick={() => {
+                    setSelectedModule(module);
+                    setShowModuleDetail(true);
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No modules available</h3>
+              <p className="text-gray-600">
+                {student ? `No exam results found for ${student.name}.` : 'Your exam results will appear here.'}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

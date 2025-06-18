@@ -10,21 +10,20 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [rollNumber, setRollNumber] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('Login attempted with:', { rollNumber, password });
+    console.log('Login attempted with roll number:', rollNumber);
     
     try {
-      // Check credentials against Supabase profiles table - remove .single() and use array query
+      // Check if roll number exists in Supabase profiles table
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('roll_number', rollNumber);
+        .eq('roll_number', rollNumber.trim().toUpperCase());
 
       console.log('Matching profiles:', profiles);
       console.log('Query error:', error);
@@ -37,28 +36,21 @@ const Login = () => {
       }
 
       if (!profiles || profiles.length === 0) {
-        toast.error('Invalid roll number or password');
+        toast.error('Invalid roll number. Please check and try again.');
         console.log('Login failed: No profile found for roll number:', rollNumber);
         setIsLoading(false);
         return;
       }
 
       const profile = profiles[0];
-
-      // Check password against the password_hash field in the database
-      if (password === profile.password_hash) {
-        toast.success(`Welcome back, ${profile.name}!`);
-        console.log('Login successful for user:', profile);
-        
-        // Store user data in localStorage for the session
-        localStorage.setItem('currentUser', JSON.stringify(profile));
-        
-        // Navigate to profile page
-        navigate('/profile');
-      } else {
-        toast.error('Invalid roll number or password');
-        console.log('Login failed: Invalid password');
-      }
+      toast.success(`Welcome back, ${profile.name}!`);
+      console.log('Login successful for user:', profile);
+      
+      // Store user data in localStorage for the session
+      localStorage.setItem('currentUser', JSON.stringify(profile));
+      
+      // Navigate to profile page
+      navigate('/profile');
     } catch (error) {
       console.error('Login error:', error);
       toast.error('An error occurred during login');
@@ -85,7 +77,7 @@ const Login = () => {
             Students App
           </h1>
           <p className="text-gray-600">
-            Sign in to your account
+            Enter your roll number to sign in
           </p>
         </CardHeader>
 
@@ -99,25 +91,9 @@ const Login = () => {
               <Input
                 id="rollNumber"
                 type="text"
-                placeholder="Enter your roll number"
+                placeholder="Enter your roll number (e.g., CS2021001)"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
-                required
-                className="w-full"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full"
               />
@@ -135,13 +111,14 @@ const Login = () => {
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Roll Numbers:</h3>
             <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Roll:</strong> CS2021001 | <strong>Pass:</strong> student123</p>
-              <p><strong>Roll:</strong> CS2021002 | <strong>Pass:</strong> student123</p>
-              <p><strong>Roll:</strong> EE2021001 | <strong>Pass:</strong> student123</p>
-              <p><strong>Roll:</strong> ME2021001 | <strong>Pass:</strong> student123</p>
-              <p><strong>Roll:</strong> CS2022001 | <strong>Pass:</strong> student123</p>
+              <p><strong>CS2021001</strong> - Alex Thompson (CS)</p>
+              <p><strong>CS2021002</strong> - Sarah Davis (CS)</p>
+              <p><strong>EE2021001</strong> - Mike Johnson (EE)</p>
+              <p><strong>ME2021001</strong> - Emma Brown (ME)</p>
+              <p><strong>CS2022001</strong> - David Wilson (CS)</p>
+              <p><strong>CS2021003</strong> - John Smith (CS)</p>
             </div>
           </div>
 
