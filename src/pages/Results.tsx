@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import ResultsModuleCard from '@/components/ResultsModuleCard';
@@ -7,6 +6,7 @@ import ModuleDetailView from '@/components/ModuleDetailView';
 import { TrendingUp, Award, Target, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { dummyStudent, dummyResults } from '@/data/dummyData';
 
 interface StudentResult {
   id: string;
@@ -61,33 +61,17 @@ const Results = () => {
     try {
       setLoading(true);
       
-      // Try to get current user from localStorage first
+      // Check if user is logged in
       const currentUser = localStorage.getItem('currentUser');
       let currentStudent = null;
+      let resultsData = [];
       
       if (currentUser) {
+        // User is logged in - fetch real data
         currentStudent = JSON.parse(currentUser);
-      } else {
-        // Fallback to first student (Alex Thompson)
-        const { data: profiles, error: profileError } = await supabase
-          .from('profiles')
-          .select('id, name, roll_number')
-          .eq('roll_number', 'CS2021001')
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching student profile:', profileError);
-          toast.error('Failed to load student profile');
-          return;
-        }
-        currentStudent = profiles;
-      }
-
-      if (currentStudent) {
-        setStudent(currentStudent);
         
         // Fetch results for this student
-        const { data: resultsData, error: resultsError } = await supabase
+        const { data: dbResults, error: resultsError } = await supabase
           .from('student_results')
           .select('*')
           .eq('user_id', currentStudent.id)
@@ -99,15 +83,33 @@ const Results = () => {
           return;
         }
 
-        setResults(resultsData || []);
-        console.log('Loaded results for student:', currentStudent.name, resultsData);
-        
-        // Process results into modules
-        processResultsIntoModules(resultsData || []);
+        resultsData = dbResults || [];
+      } else {
+        // User not logged in - use dummy data
+        currentStudent = {
+          id: dummyStudent.id,
+          name: dummyStudent.name,
+          roll_number: dummyStudent.roll_number
+        };
+        resultsData = dummyResults;
       }
+
+      setStudent(currentStudent);
+      setResults(resultsData);
+      console.log('Loaded results for student:', currentStudent.name, resultsData);
+      
+      // Process results into modules
+      processResultsIntoModules(resultsData);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load data');
+      // Fallback to dummy data
+      setStudent({
+        id: dummyStudent.id,
+        name: dummyStudent.name,
+        roll_number: dummyStudent.roll_number
+      });
+      setResults(dummyResults);
+      processResultsIntoModules(dummyResults);
     } finally {
       setLoading(false);
     }
