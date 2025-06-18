@@ -197,3 +197,39 @@ export const dummyTimetable = [
     faculty: { name: 'Prof. Brown' }
   }
 ];
+
+export const dummyExams = [
+  {
+    id: 'exam-001',
+    subject: 'Mathematics II',
+    exam_date: '2024-12-15',
+    start_time: '09:00',
+    duration_minutes: 180,
+    room: 'Hall A',
+    exam_type: 'Final',
+    max_score: 100,
+    syllabus_coverage: 'Chapters 1-8'
+  },
+  {
+    id: 'exam-002',
+    subject: 'Data Structures',
+    exam_date: '2024-12-17',
+    start_time: '14:00',
+    duration_minutes: 180,
+    room: 'Hall B',
+    exam_type: 'Final',
+    max_score: 100,
+    syllabus_coverage: 'All practical sessions'
+  },
+  {
+    id: 'exam-003',
+    subject: 'Digital Logic',
+    exam_date: '2024-12-20',
+    start_time: '09:00',
+    duration_minutes: 180,
+    room: 'Hall C',
+    exam_type: 'Final',
+    max_score: 100,
+    syllabus_coverage: 'Logic gates and circuits'
+  }
+];

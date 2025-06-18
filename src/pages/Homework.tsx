@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { dummyHomework } from '@/data/dummyData';
 
 interface Assignment {
   id: string;
@@ -35,26 +36,37 @@ const Homework = () => {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('homework_assignments')
-        .select(`
-          *,
-          faculty (
-            name
-          )
-        `)
-        .order('due_date', { ascending: true });
+      
+      // Check if user is logged in
+      const currentUser = localStorage.getItem('currentUser');
+      
+      if (currentUser) {
+        // User is logged in - fetch real data
+        const { data, error } = await supabase
+          .from('homework_assignments')
+          .select(`
+            *,
+            faculty (
+              name
+            )
+          `)
+          .order('due_date', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching assignments:', error);
-        toast.error('Failed to load assignments');
-        return;
+        if (error) {
+          console.error('Error fetching assignments:', error);
+          toast.error('Failed to load assignments');
+          setAssignments(dummyHomework);
+          return;
+        }
+
+        setAssignments(data || []);
+      } else {
+        // User not logged in - use dummy data
+        setAssignments(dummyHomework);
       }
-
-      setAssignments(data || []);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load assignments');
+      setAssignments(dummyHomework);
     } finally {
       setLoading(false);
     }

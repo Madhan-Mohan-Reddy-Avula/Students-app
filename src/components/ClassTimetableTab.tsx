@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { dummyTimetable } from '@/data/dummyData';
 
 interface TimetableEntry {
   id: string;
@@ -30,26 +32,37 @@ const ClassTimetableTab = () => {
   const fetchTimetable = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('timetable')
-        .select(`
-          *,
-          subjects (name),
-          faculty (name)
-        `)
-        .order('day_of_week')
-        .order('start_time');
+      
+      // Check if user is logged in
+      const currentUser = localStorage.getItem('currentUser');
+      
+      if (currentUser) {
+        // User is logged in - fetch real data
+        const { data, error } = await supabase
+          .from('timetable')
+          .select(`
+            *,
+            subjects (name),
+            faculty (name)
+          `)
+          .order('day_of_week')
+          .order('start_time');
 
-      if (error) {
-        console.error('Error fetching timetable:', error);
-        toast.error('Failed to load timetable');
-        return;
+        if (error) {
+          console.error('Error fetching timetable:', error);
+          toast.error('Failed to load timetable');
+          setTimetableData(dummyTimetable);
+          return;
+        }
+
+        setTimetableData(data || []);
+      } else {
+        // User not logged in - use dummy data
+        setTimetableData(dummyTimetable);
       }
-
-      setTimetableData(data || []);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load timetable');
+      setTimetableData(dummyTimetable);
     } finally {
       setLoading(false);
     }

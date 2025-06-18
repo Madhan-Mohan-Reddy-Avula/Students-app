@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { dummyEvents } from '@/data/dummyData';
 
 interface Event {
   id: string;
@@ -26,21 +27,32 @@ export const useEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('school_events')
-        .select('*')
-        .order('event_date', { ascending: true });
+      
+      // Check if user is logged in
+      const currentUser = localStorage.getItem('currentUser');
+      
+      if (currentUser) {
+        // User is logged in - fetch real data
+        const { data, error } = await supabase
+          .from('school_events')
+          .select('*')
+          .order('event_date', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching events:', error);
-        toast.error('Failed to load events');
-        return;
+        if (error) {
+          console.error('Error fetching events:', error);
+          toast.error('Failed to load events');
+          setEvents(dummyEvents);
+          return;
+        }
+
+        setEvents(data || []);
+      } else {
+        // User not logged in - use dummy data
+        setEvents(dummyEvents);
       }
-
-      setEvents(data || []);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load events');
+      setEvents(dummyEvents);
     } finally {
       setLoading(false);
     }
