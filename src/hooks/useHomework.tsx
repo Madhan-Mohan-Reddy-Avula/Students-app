@@ -45,7 +45,24 @@ export const useHomework = () => {
           return;
         }
 
-        setHomework(data || []);
+        // Transform the data to match our interface
+        const transformedData: HomeworkAssignment[] = (data || []).map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          subject: item.subject,
+          due_date: item.due_date,
+          status: (item.status === 'pending' || item.status === 'completed' || item.status === 'overdue') 
+            ? item.status 
+            : 'pending',
+          priority: (item.priority === 'low' || item.priority === 'medium' || item.priority === 'high') 
+            ? item.priority 
+            : 'medium',
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        }));
+
+        setHomework(transformedData);
       } else {
         // User not logged in - use dummy data
         setHomework(dummyHomework);
