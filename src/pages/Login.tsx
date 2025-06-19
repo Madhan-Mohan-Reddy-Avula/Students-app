@@ -16,17 +16,36 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log('Login attempted with roll number:', rollNumber);
+    
+    const trimmedRollNumber = rollNumber.trim().toUpperCase();
+    console.log('Login attempted with roll number:', trimmedRollNumber);
     
     try {
-      // Check if roll number exists in Supabase profiles table
+      // First, let's check if we can connect to Supabase at all
+      console.log('Testing Supabase connection...');
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+      
+      console.log('Supabase connection test:', { testData, testError });
+      
+      if (testError) {
+        console.error('Supabase connection failed:', testError);
+        toast.error('Database connection failed. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Now try to fetch the specific profile
+      console.log('Fetching profile for roll number:', trimmedRollNumber);
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('roll_number', rollNumber.trim().toUpperCase());
+        .eq('roll_number', trimmedRollNumber);
 
-      console.log('Matching profiles:', profiles);
-      console.log('Query error:', error);
+      console.log('Profile query result:', { profiles, error });
+      console.log('Number of profiles found:', profiles?.length || 0);
 
       if (error) {
         console.error('Database error:', error);
@@ -36,15 +55,24 @@ const Login = () => {
       }
 
       if (!profiles || profiles.length === 0) {
+        console.log('No profile found for roll number:', trimmedRollNumber);
+        
+        // Let's also check what roll numbers actually exist
+        const { data: allProfiles, error: allError } = await supabase
+          .from('profiles')
+          .select('roll_number')
+          .limit(10);
+        
+        console.log('Available roll numbers:', allProfiles?.map(p => p.roll_number));
+        
         toast.error('Invalid roll number. Please check and try again.');
-        console.log('Login failed: No profile found for roll number:', rollNumber);
         setIsLoading(false);
         return;
       }
 
       const profile = profiles[0];
-      toast.success(`Welcome back, ${profile.name}!`);
       console.log('Login successful for user:', profile);
+      toast.success(`Welcome back, ${profile.name}!`);
       
       // Store user data in localStorage for the session
       localStorage.setItem('currentUser', JSON.stringify(profile));
