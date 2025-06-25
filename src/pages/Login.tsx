@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+// src/pages/Login.tsx
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,75 +13,41 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const stored = localStorage.getItem('currentUser');
+    if (stored) navigate('/');
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    const trimmedRollNumber = rollNumber.trim().toUpperCase();
-    console.log('Login attempted with roll number:', trimmedRollNumber);
-    
-    try {
-      // First, let's check if we can connect to Supabase at all
-      console.log('Testing Supabase connection...');
-      const { data: testData, error: testError } = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
-      
-      console.log('Supabase connection test:', { testData, testError });
-      
-      if (testError) {
-        console.error('Supabase connection failed:', testError);
-        toast.error('Database connection failed. Please try again.');
-        setIsLoading(false);
-        return;
-      }
 
-      // Now try to fetch the specific profile
-      console.log('Fetching profile for roll number:', trimmedRollNumber);
+    const trimmedRollNumber = rollNumber.trim().toUpperCase();
+
+    try {
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('roll_number', trimmedRollNumber);
 
-      console.log('Profile query result:', { profiles, error });
-      console.log('Number of profiles found:', profiles?.length || 0);
-
       if (error) {
-        console.error('Database error:', error);
-        toast.error('Database error occurred');
+        toast.error('Database error');
         setIsLoading(false);
         return;
       }
 
       if (!profiles || profiles.length === 0) {
-        console.log('No profile found for roll number:', trimmedRollNumber);
-        
-        // Let's also check what roll numbers actually exist
-        const { data: allProfiles, error: allError } = await supabase
-          .from('profiles')
-          .select('roll_number')
-          .limit(10);
-        
-        console.log('Available roll numbers:', allProfiles?.map(p => p.roll_number));
-        
-        toast.error('Invalid roll number. Please check and try again.');
+        toast.error('Invalid roll number');
         setIsLoading(false);
         return;
       }
 
       const profile = profiles[0];
-      console.log('Login successful for user:', profile);
-      toast.success(`Welcome back, ${profile.name}!`);
-      
-      // Store user data in localStorage for the session
       localStorage.setItem('currentUser', JSON.stringify(profile));
-      
-      // Navigate to profile page
-      navigate('/profile');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.success(`Welcome ${profile.name}`);
+      navigate('/');
+    } catch (err) {
+      toast.error('Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +57,6 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md card-3d">
         <CardHeader className="text-center pb-8">
-          {/* Logo */}
           <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/82ee4e3c-1177-441b-a939-b23f4a9f3496.png" 
@@ -99,61 +64,32 @@ const Login = () => {
               className="w-20 h-20 object-contain"
             />
           </div>
-          
-          {/* Title */}
-          <h1 className="text-3xl font-bold gradient-text mb-2">
-            Students App
-          </h1>
-          <p className="text-gray-600">
-            Enter your roll number to sign in
-          </p>
+          <h1 className="text-3xl font-bold gradient-text mb-2">Students App</h1>
+          <p className="text-gray-600">Enter your roll number to sign in</p>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* Roll Number Input */}
             <div className="space-y-2">
-              <Label htmlFor="rollNumber" className="text-sm font-medium text-gray-700">
-                Roll Number
-              </Label>
+              <Label htmlFor="rollNumber">Roll Number</Label>
               <Input
                 id="rollNumber"
                 type="text"
-                placeholder="Enter your roll number (e.g., CS2021001)"
+                placeholder="e.g., CS2023001"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
                 required
-                className="w-full"
               />
             </div>
 
-            {/* Login Button */}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-200"
+              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white"
             >
               {isLoading ? 'Signing in...' : 'Login'}
             </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Roll Numbers:</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>CS2021001</strong> - Alex Thompson (CS)</p>
-              <p><strong>CS2021002</strong> - Sarah Davis (CS)</p>
-              <p><strong>EE2021001</strong> - Mike Johnson (EE)</p>
-              <p><strong>ME2021001</strong> - Emma Brown (ME)</p>
-              <p><strong>CS2022001</strong> - David Wilson (CS)</p>
-              <p><strong>CS2021003</strong> - John Smith (CS)</p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center mt-6 text-sm text-gray-500">
-            <p>© 2024 Students App - Empowering your educational journey</p>
-          </div>
         </CardContent>
       </Card>
     </div>

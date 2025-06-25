@@ -1,10 +1,15 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen, Calendar, Users, FileText, User, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser');
+    setIsLoggedIn(!!currentUser); // true if user exists
+  }, []);
 
   const dashboardItems = [
     {
@@ -40,7 +45,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header with Logo, Title, Login and Profile */}
+        {/* Header */}
         <div className="flex justify-between items-center mb-12">
           {/* Logo */}
           <div className="flex items-center">
@@ -51,22 +56,24 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* Centered Title */}
+          {/* Title */}
           <div className="flex-1 text-center">
             <h1 className="text-5xl md:text-6xl font-bold gradient-text animate-fade-in">
               Students App
             </h1>
           </div>
 
-          {/* Login and Profile Icons */}
+          {/* Buttons */}
           <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/login')}
-              className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
-              title="Login"
-            >
-              <LogIn className="w-6 h-6 text-white" />
-            </button>
+            {!isLoggedIn && (
+              <button
+                onClick={() => navigate('/login')}
+                className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
+                title="Login"
+              >
+                <LogIn className="w-6 h-6 text-white" />
+              </button>
+            )}
             <button
               onClick={() => navigate('/profile')}
               className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
@@ -80,7 +87,7 @@ const Dashboard = () => {
         {/* Subtitle */}
         <div className="text-center mb-12">
           <p className="text-xl text-gray-600 animate-fade-in">
-            Education is the Most Powerful Weapon Which You Can Change the World..
+            Education is the Most Powerful Weapon Which You Can Use to Change the World.
           </p>
         </div>
 

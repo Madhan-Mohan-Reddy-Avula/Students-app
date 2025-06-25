@@ -1,32 +1,34 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { BookOpen, Calendar } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, BookOpen } from 'lucide-react';
 import ClassTimetableTab from '@/components/ClassTimetableTab';
 import ExamTimetableTab from '@/components/ExamTimetableTab';
-import FacultySection from '@/components/FacultySection';
+import FacultySection from '@/components/FacultySection'; // optional
 
 const Timetable = () => {
-  // Remove the unused classSchedule and exams state since components now fetch their own data
-  
-  // Faculty information
-  const facultyList = [
-    { name: 'Mr. Smith', subject: 'Mathematics', department: 'Science' },
-    { name: 'Ms. Johnson', subject: 'English', department: 'Languages' },
-    { name: 'Dr. Brown', subject: 'Science', department: 'Science' },
-    { name: 'Mr. Davis', subject: 'History', department: 'Social Studies' },
-    { name: 'Ms. Wilson', subject: 'Geography', department: 'Social Studies' },
-    { name: 'Coach Miller', subject: 'Physical Education', department: 'Sports' },
-    { name: 'Ms. Garcia', subject: 'Art', department: 'Creative Arts' },
-    { name: 'Mr. Taylor', subject: 'Music', department: 'Creative Arts' },
-    { name: 'Mr. Anderson', subject: 'Computer Science', department: 'Technology' }
-  ];
+  const [classId, setClassId] = useState<string | null>(null);
+  const [facultyList, setFacultyList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser) {
+      try {
+        const user = JSON.parse(currentUser);
+        setClassId(user.class_id || null);
+      } catch (err) {
+        console.error('Failed to parse currentUser from localStorage:', err);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
-      <NavigationHeader title="Timetable" subtitle="View your class schedule and exam timetable" />
-      
+      <NavigationHeader
+        title="Timetable"
+        subtitle="View your class schedule and exam timetable"
+      />
+
       <div className="max-w-6xl mx-auto p-6">
         <Tabs defaultValue="class" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -41,12 +43,23 @@ const Timetable = () => {
           </TabsList>
 
           <TabsContent value="class" className="space-y-6">
-            <ClassTimetableTab />
-            <FacultySection facultyList={facultyList} />
+            {classId ? (
+              <>
+                <ClassTimetableTab classId={classId} />
+                {/* If you want to show faculty info per class, enable this */}
+                {facultyList.length > 0 && <FacultySection facultyList={facultyList} />}
+              </>
+            ) : (
+              <p className="text-center text-gray-600">Class ID not found. Please log in again.</p>
+            )}
           </TabsContent>
 
           <TabsContent value="exam" className="space-y-6">
-            <ExamTimetableTab />
+            {classId ? (
+              <ExamTimetableTab classId={classId} />
+            ) : (
+              <p className="text-center text-gray-600">Class ID not found. Please log in again.</p>
+            )}
           </TabsContent>
         </Tabs>
       </div>

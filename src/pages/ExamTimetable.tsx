@@ -1,51 +1,61 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Calendar, Clock, MapPin, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface Exam {
+  id: string;
+  subject: string;
+  date: string;
+  time: string;
+  duration: string;
+  location: string;
+  type: string;
+  syllabus: string;
+}
 
 const ExamTimetable = () => {
-  const [exams] = useState([
-    {
-      id: 1,
-      subject: 'Mathematics',
-      date: '2024-06-25',
-      time: '09:00 AM',
-      duration: '2 hours',
-      location: 'Room 101',
-      type: 'Written Exam',
-      syllabus: 'Chapters 1-8: Algebra, Geometry, Trigonometry'
-    },
-    {
-      id: 2,
-      subject: 'English Literature',
-      date: '2024-06-27',
-      time: '10:00 AM',
-      duration: '3 hours',
-      location: 'Room 205',
-      type: 'Written Exam',
-      syllabus: 'Shakespeare, Poetry Analysis, Essay Writing'
-    },
-    {
-      id: 3,
-      subject: 'Science',
-      date: '2024-06-29',
-      time: '02:00 PM',
-      duration: '1.5 hours',
-      location: 'Lab 3',
-      type: 'Practical Exam',
-      syllabus: 'Chemical Reactions, Physics Experiments'
-    },
-    {
-      id: 4,
-      subject: 'History',
-      date: '2024-07-02',
-      time: '09:00 AM',
-      duration: '2 hours',
-      location: 'Room 150',
-      type: 'Written Exam',
-      syllabus: 'World War I & II, Industrial Revolution'
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchExams();
+  }, []);
+
+  const fetchExams = async () => {
+    try {
+      setLoading(true);
+
+      const currentClassId = localStorage.getItem('currentClassId');
+      if (!currentClassId) {
+        toast.error('Class ID not found. Please log in.');
+        setExams([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('exam_timetable')
+        .select('*')
+        .eq('class_id', currentClassId)
+        .order('date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching exam data:', error);
+        toast.error('Failed to load exam timetable');
+        setExams([]);
+        return;
+      }
+
+      setExams(data || []);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('Something went wrong');
+      setExams([]);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   const getDaysUntilExam = (examDate: string) => {
     const today = new Date();
@@ -74,76 +84,78 @@ const ExamTimetable = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
       <NavigationHeader title="Exam Timetable" subtitle="View your upcoming exams and schedule" />
-      
+
       <div className="max-w-6xl mx-auto p-6">
-        <div className="grid gap-6">
-          {exams.map((exam) => {
-            const daysUntil = getDaysUntilExam(exam.date);
-            const urgencyBadge = getUrgencyBadge(daysUntil);
-            
-            return (
-              <div
-                key={exam.id}
-                className={`card-3d p-6 border-l-4 ${getUrgencyColor(daysUntil)} animate-fade-in`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-800">
-                        {exam.subject}
-                      </h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${urgencyBadge.color}`}>
-                        {urgencyBadge.text}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading exams...</p>
+          </div>
+        ) : exams.length > 0 ? (
+          <div className="grid gap-6">
+            {exams.map((exam) => {
+              const daysUntil = getDaysUntilExam(exam.date);
+              const urgencyBadge = getUrgencyBadge(daysUntil);
+
+              return (
+                <div
+                  key={exam.id}
+                  className={`card-3d p-6 border-l-4 ${getUrgencyColor(daysUntil)} animate-fade-in`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <h3 className="text-xl font-bold text-gray-800">{exam.subject}</h3>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${urgencyBadge.color}`}
+                        >
+                          {urgencyBadge.text}
+                        </span>
+                      </div>
+
+                      <p className="text-purple-600 font-medium mb-3">{exam.type}</p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(exam.date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.time} ({exam.duration})</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <MapPin className="w-4 h-4" />
+                            <span>{exam.location}</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-1">Syllabus:</h4>
+                          <p className="text-sm text-gray-600">{exam.syllabus}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {daysUntil >= 0 && daysUntil <= 7 && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center space-x-2">
+                      <AlertCircle className="w-5 h-5 text-yellow-600" />
+                      <span className="text-sm text-yellow-800">
+                        {daysUntil === 0
+                          ? 'Exam is today! Good luck!'
+                          : daysUntil === 1
+                          ? 'Exam is tomorrow! Final preparations!'
+                          : `Only ${daysUntil} days left to prepare!`}
                       </span>
                     </div>
-                    
-                    <p className="text-purple-600 font-medium mb-3">
-                      {exam.type}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span>{new Date(exam.date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <Clock className="w-4 h-4" />
-                          <span>{exam.time} ({exam.duration})</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <MapPin className="w-4 h-4" />
-                          <span>{exam.location}</span>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-1">Syllabus:</h4>
-                        <p className="text-sm text-gray-600">{exam.syllabus}</p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
-                
-                {daysUntil >= 0 && daysUntil <= 7 && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center space-x-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
-                    <span className="text-sm text-yellow-800">
-                      {daysUntil === 0 
-                        ? "Exam is today! Good luck!" 
-                        : daysUntil === 1 
-                          ? "Exam is tomorrow! Final preparations!" 
-                          : `Only ${daysUntil} days left to prepare!`
-                      }
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        
-        {exams.length === 0 && (
+              );
+            })}
+          </div>
+        ) : (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-8 h-8 text-gray-400" />
