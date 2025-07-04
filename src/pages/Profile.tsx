@@ -1,31 +1,13 @@
-import React, { useEffect } from 'react';
+
+import React from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfileInfoSection from '@/components/ProfileInfoSection';
-import { User, LogOut } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { User } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 
 const Profile = () => {
   const { studentData, classInfo, loading } = useProfile();
-  const navigate = useNavigate();
-
-  // 🔐 Redirect if not logged in
-  useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    if (!storedUser) {
-      navigate('/login');
-    }
-  }, [navigate]);
-
-  // 🔓 Logout handler
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('currentUser');
-    navigate('/login');
-  };
 
   if (loading) {
     return (
@@ -46,18 +28,7 @@ const Profile = () => {
       <NavigationHeader title="Profile" subtitle="Student Information" />
 
       <div className="max-w-6xl mx-auto p-6">
-        {/* 🔴 Logout Button */}
-        <div className="flex justify-end mb-4">
-          <Button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white flex items-center space-x-2"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </Button>
-        </div>
-
-        {/* 🔵 Profile Info */}
+        {/* Profile Info */}
         {studentData ? (
           <>
             <ProfileHeader studentData={studentData} classInfo={classInfo} />

@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { BookOpen, Calendar, Users, FileText, User, LogIn } from 'lucide-react';
+
+import React from 'react';
+import { BookOpen, Calendar, Users, FileText, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    setIsLoggedIn(!!currentUser); // true if user exists
-  }, []);
 
   const dashboardItems = [
     {
@@ -63,17 +58,8 @@ const Dashboard = () => {
             </h1>
           </div>
 
-          {/* Buttons */}
+          {/* Profile Button */}
           <div className="flex items-center space-x-3">
-            {!isLoggedIn && (
-              <button
-                onClick={() => navigate('/login')}
-                className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
-                title="Login"
-              >
-                <LogIn className="w-6 h-6 text-white" />
-              </button>
-            )}
             <button
               onClick={() => navigate('/profile')}
               className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
