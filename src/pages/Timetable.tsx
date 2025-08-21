@@ -45,7 +45,7 @@ const Timetable = () => {
           <TabsContent value="class" className="space-y-6">
             {classId ? (
               <>
-                <ClassTimetableTab classId={classId} />
+                <ClassTimetableTab />
                 {/* If you want to show faculty info per class, enable this */}
                 {facultyList.length > 0 && <FacultySection facultyList={facultyList} />}
               </>
@@ -56,7 +56,7 @@ const Timetable = () => {
 
           <TabsContent value="exam" className="space-y-6">
             {classId ? (
-              <ExamTimetableTab classId={classId} />
+              <ExamTimetableTab />
             ) : (
               <p className="text-center text-gray-600">Class ID not found. Please log in again.</p>
             )}

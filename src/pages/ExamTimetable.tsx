@@ -7,12 +7,11 @@ import { toast } from 'sonner';
 interface Exam {
   id: string;
   subject: string;
-  date: string;
-  time: string;
-  duration: string;
-  location: string;
-  type: string;
-  syllabus: string;
+  exam_date: string;
+  start_time: string;
+  end_time: string;
+  room: string;
+  type?: string;
 }
 
 const ExamTimetable = () => {
@@ -26,19 +25,10 @@ const ExamTimetable = () => {
   const fetchExams = async () => {
     try {
       setLoading(true);
-
-      const currentClassId = localStorage.getItem('currentClassId');
-      if (!currentClassId) {
-        toast.error('Class ID not found. Please log in.');
-        setExams([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('exam_timetable')
         .select('*')
-        .eq('class_id', currentClassId)
-        .order('date', { ascending: true });
+        .order('exam_date', { ascending: true });
 
       if (error) {
         console.error('Error fetching exam data:', error);
@@ -94,7 +84,7 @@ const ExamTimetable = () => {
         ) : exams.length > 0 ? (
           <div className="grid gap-6">
             {exams.map((exam) => {
-              const daysUntil = getDaysUntilExam(exam.date);
+              const daysUntil = getDaysUntilExam(exam.exam_date);
               const urgencyBadge = getUrgencyBadge(daysUntil);
 
               return (
@@ -113,27 +103,20 @@ const ExamTimetable = () => {
                         </span>
                       </div>
 
-                      <p className="text-purple-600 font-medium mb-3">{exam.type}</p>
+                      <p className="text-purple-600 font-medium mb-3">{exam.type || 'Written Exam'}</p>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2 text-gray-600">
-                            <Calendar className="w-4 h-4" />
-                            <span>{new Date(exam.date).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-gray-600">
-                            <Clock className="w-4 h-4" />
-                            <span>{exam.time} ({exam.duration})</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-gray-600">
-                            <MapPin className="w-4 h-4" />
-                            <span>{exam.location}</span>
-                          </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(exam.exam_date).toLocaleDateString()}</span>
                         </div>
-
-                        <div>
-                          <h4 className="font-semibold text-gray-800 mb-1">Syllabus:</h4>
-                          <p className="text-sm text-gray-600">{exam.syllabus}</p>
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          <span>{exam.start_time} - {exam.end_time}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <MapPin className="w-4 h-4" />
+                          <span>{exam.room || 'TBA'}</span>
                         </div>
                       </div>
                     </div>

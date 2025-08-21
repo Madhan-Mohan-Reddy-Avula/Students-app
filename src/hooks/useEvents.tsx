@@ -9,11 +9,11 @@ interface Event {
   title: string;
   description: string;
   event_date: string;
-  start_time: string;
+  start_time?: string;
   location: string;
   category: string;
-  participants_info: string;
-  is_featured: boolean;
+  participants_info?: string;
+  is_featured?: boolean;
 }
 
 export const useEvents = () => {

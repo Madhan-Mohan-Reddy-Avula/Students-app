@@ -8,11 +8,13 @@ import { dummyTimetable } from '@/data/dummyData';
 
 interface TimetableEntry {
   id: string;
-  day_of_week: number;
+  day_of_week: string | number;
   start_time: string;
   end_time: string;
-  room_location: string;
+  room_location?: string;
+  room?: string;
   teacher: string;
+  subject?: string;
   subjects?: {
     name: string;
   };
@@ -40,11 +42,7 @@ const ClassTimetableTab = () => {
         // User is logged in - fetch real data
         const { data, error } = await supabase
           .from('timetable')
-          .select(`
-            *,
-            subjects (name),
-            faculty (name)
-          `)
+          .select('*')
           .order('day_of_week')
           .order('start_time');
 
@@ -73,6 +71,14 @@ const ClassTimetableTab = () => {
     return days[dayNumber] || 'Unknown';
   };
 
+  const getDayNumberFromName = (dayName: string): number => {
+    const dayMap: { [key: string]: number } = {
+      'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5,
+      'sunday': 0, 'saturday': 6
+    };
+    return dayMap[dayName.toLowerCase()] || 0;
+  };
+
   const formatTime = (time: string) => {
     try {
       const [hours, minutes] = time.split(':');
@@ -99,7 +105,13 @@ const ClassTimetableTab = () => {
       if (!matrix[timeSlot]) {
         matrix[timeSlot] = {};
       }
-      matrix[timeSlot][entry.day_of_week] = entry;
+      // Handle both string and number day formats
+      const dayNumber = typeof entry.day_of_week === 'string' 
+        ? getDayNumberFromName(entry.day_of_week)
+        : entry.day_of_week;
+      if (dayNumber >= 1 && dayNumber <= 5) {
+        matrix[timeSlot][dayNumber] = entry;
+      }
     });
     
     return matrix;
@@ -146,9 +158,9 @@ const ClassTimetableTab = () => {
                     </TableCell>
                     {[1, 2, 3, 4, 5].map((dayNum) => {
                       const entry = timetableMatrix[timeSlot]?.[dayNum];
-                      const subject = entry?.subjects?.name || 'No Subject';
+                      const subject = entry?.subjects?.name || entry?.subject || 'No Subject';
                       const teacher = entry?.faculty?.name || entry?.teacher || 'No Teacher';
-                      const room = entry?.room_location || '';
+                      const room = entry?.room_location || entry?.room || '';
                       
                       return (
                         <TableCell key={dayNum} className="font-semibold text-gray-800">

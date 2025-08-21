@@ -17,9 +17,7 @@ interface Assignment {
   due_date: string;
   priority: string;
   status: string;
-  faculty?: {
-    name: string;
-  };
+  faculty?: any; // Make faculty optional and flexible to handle database response
 }
 
 const Homework = () => {

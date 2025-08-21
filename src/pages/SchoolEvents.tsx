@@ -1,27 +1,26 @@
-
 import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import EventInterestForm from '@/components/EventInterestForm';
 import EventsList from '@/components/EventsList';
 import { useEvents } from '@/hooks/useEvents';
 
-interface Event {
+interface SchoolEvent {
   id: string;
   title: string;
   description: string;
   event_date: string;
-  start_time: string;
+  start_time?: string;
   location: string;
   category: string;
-  participants_info: string;
-  is_featured: boolean;
+  participants_info?: string;
+  is_featured?: boolean;
 }
 
 const SchoolEvents = () => {
   const { events, loading, getDaysUntilEvent, getCategoryColor } = useEvents();
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
-  const handleEventClick = (event: Event) => {
+  const handleEventClick = (event: any) => {
     setSelectedEvent(event);
   };
 
@@ -35,7 +34,7 @@ const SchoolEvents = () => {
       
       <div className="max-w-6xl mx-auto p-6">
         <EventsList
-          events={events}
+          events={events as any}
           loading={loading}
           getDaysUntilEvent={getDaysUntilEvent}
           getCategoryColor={getCategoryColor}
