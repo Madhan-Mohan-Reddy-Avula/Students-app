@@ -67,23 +67,9 @@ const Results = () => {
       let resultsData = [];
       
       if (currentUser) {
-        // User is logged in - fetch real data
+        // User is logged in - use dummy data for now (can be enhanced later)
         currentStudent = JSON.parse(currentUser);
-        
-        // Fetch results for this student
-        const { data: dbResults, error: resultsError } = await supabase
-          .from('student_results')
-          .select('*')
-          .eq('user_id', currentStudent.id)
-          .order('exam_date', { ascending: false });
-
-        if (resultsError) {
-          console.error('Error fetching results:', resultsError);
-          toast.error('Failed to load results');
-          return;
-        }
-
-        resultsData = dbResults || [];
+        resultsData = dummyResults;
       } else {
         // User not logged in - use dummy data
         currentStudent = {
