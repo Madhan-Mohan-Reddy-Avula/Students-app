@@ -34,30 +34,8 @@ const ClassTimetableTab = () => {
   const fetchTimetable = async () => {
     try {
       setLoading(true);
-      
-      // Check if user is logged in
-      const currentUser = localStorage.getItem('currentUser');
-      
-      if (currentUser) {
-        // User is logged in - fetch real data
-        const { data, error } = await supabase
-          .from('timetable')
-          .select('*')
-          .order('day_of_week')
-          .order('start_time');
-
-        if (error) {
-          console.error('Error fetching timetable:', error);
-          toast.error('Failed to load timetable');
-          setTimetableData(dummyTimetable);
-          return;
-        }
-
-        setTimetableData(data || []);
-      } else {
-        // User not logged in - use dummy data
-        setTimetableData(dummyTimetable);
-      }
+      // Always use dummy data
+      setTimetableData(dummyTimetable);
     } catch (error) {
       console.error('Error:', error);
       setTimetableData(dummyTimetable);

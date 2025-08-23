@@ -27,46 +27,8 @@ export const useHomework = () => {
   const fetchHomework = async () => {
     try {
       setLoading(true);
-      
-      // Check if user is logged in
-      const currentUser = localStorage.getItem('currentUser');
-      
-      if (currentUser) {
-        // User is logged in - fetch real data
-        const { data, error } = await supabase
-          .from('homework_assignments')
-          .select('*')
-          .order('due_date', { ascending: true });
-
-        if (error) {
-          console.error('Error fetching homework:', error);
-          toast.error('Failed to load homework');
-          setHomework(dummyHomework);
-          return;
-        }
-
-        // Transform the data to match our interface
-        const transformedData: HomeworkAssignment[] = (data || []).map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description || '',
-          subject: item.subject,
-          due_date: item.due_date,
-          status: (item.status === 'pending' || item.status === 'completed' || item.status === 'overdue') 
-            ? item.status 
-            : 'pending',
-          priority: (item.priority === 'low' || item.priority === 'medium' || item.priority === 'high') 
-            ? item.priority 
-            : 'medium',
-          created_at: item.created_at,
-          updated_at: item.updated_at
-        }));
-
-        setHomework(transformedData);
-      } else {
-        // User not logged in - use dummy data
-        setHomework(dummyHomework);
-      }
+      // Always use dummy data
+      setHomework(dummyHomework);
     } catch (error) {
       console.error('Error:', error);
       setHomework(dummyHomework);

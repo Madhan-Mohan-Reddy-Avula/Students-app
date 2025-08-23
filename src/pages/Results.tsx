@@ -60,32 +60,19 @@ const Results = () => {
   const fetchStudentAndResults = async () => {
     try {
       setLoading(true);
+      // Always use dummy data
+      const currentStudent = {
+        id: dummyStudent.id,
+        name: dummyStudent.name,
+        roll_number: dummyStudent.roll_number
+      };
       
-      // Check if user is logged in
-      const currentUser = localStorage.getItem('currentUser');
-      let currentStudent = null;
-      let resultsData = [];
-      
-      if (currentUser) {
-        // User is logged in - use dummy data for now (can be enhanced later)
-        currentStudent = JSON.parse(currentUser);
-        resultsData = dummyResults;
-      } else {
-        // User not logged in - use dummy data
-        currentStudent = {
-          id: dummyStudent.id,
-          name: dummyStudent.name,
-          roll_number: dummyStudent.roll_number
-        };
-        resultsData = dummyResults;
-      }
-
       setStudent(currentStudent);
-      setResults(resultsData);
-      console.log('Loaded results for student:', currentStudent.name, resultsData);
+      setResults(dummyResults);
+      console.log('Loaded results for student:', currentStudent.name, dummyResults);
       
       // Process results into modules
-      processResultsIntoModules(resultsData);
+      processResultsIntoModules(dummyResults);
     } catch (error) {
       console.error('Error:', error);
       // Fallback to dummy data

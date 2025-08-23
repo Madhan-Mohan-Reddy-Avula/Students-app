@@ -27,29 +27,8 @@ export const useEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      
-      // Check if user is logged in
-      const currentUser = localStorage.getItem('currentUser');
-      
-      if (currentUser) {
-        // User is logged in - fetch real data
-        const { data, error } = await supabase
-          .from('school_events')
-          .select('*')
-          .order('event_date', { ascending: true });
-
-        if (error) {
-          console.error('Error fetching events:', error);
-          toast.error('Failed to load events');
-          setEvents(dummyEvents);
-          return;
-        }
-
-        setEvents(data || []);
-      } else {
-        // User not logged in - use dummy data
-        setEvents(dummyEvents);
-      }
+      // Always use dummy data
+      setEvents(dummyEvents);
     } catch (error) {
       console.error('Error:', error);
       setEvents(dummyEvents);

@@ -40,41 +40,11 @@ export const useProfile = () => {
   const fetchCurrentStudent = async () => {
     try {
       setLoading(true);
-      
-      // Try to get current user from localStorage first
-      const currentUser = localStorage.getItem('currentUser');
-      
-      if (currentUser) {
-        const profile = JSON.parse(currentUser);
-        console.log('Loaded profile from localStorage:', profile);
-        setStudentData(profile);
-
-        // Fetch class information if class_id exists
-        if (profile.class_id) {
-          try {
-            const { data: classData, error: classError } = await supabase
-              .from('classes')
-              .select('*')
-              .eq('id', profile.class_id)
-              .single();
-
-            if (!classError && classData) {
-              setClassInfo(classData);
-            }
-          } catch (classError) {
-            console.log('Error fetching class info:', classError);
-          }
-        }
-      } else {
-        // Use dummy data when not logged in
-        console.log('Using dummy data for preview');
-        setStudentData(dummyStudent);
-        setClassInfo(dummyClassInfo);
-      }
-
+      // Always use dummy data
+      setStudentData(dummyStudent);
+      setClassInfo(dummyClassInfo);
     } catch (error) {
       console.error('Error fetching student profile:', error);
-      // Fallback to dummy data on error
       setStudentData(dummyStudent);
       setClassInfo(dummyClassInfo);
     } finally {

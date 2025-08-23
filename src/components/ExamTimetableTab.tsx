@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { dummyExams } from '@/data/dummyData';
 
 interface Exam {
   id: string;
   subject: string;
   exam_date: string;
   start_time: string;
-  end_time: string;
+  duration_minutes?: number;
   room: string;
-  type: string;
+  exam_type?: string;
+  max_score?: number;
+  syllabus_coverage?: string;
 }
 
 const ExamTimetableTab = () => {
@@ -25,21 +26,11 @@ const ExamTimetableTab = () => {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('exams')
-        .select('*')
-        .order('exam_date', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching exams:', error);
-        toast.error('Failed to load exams');
-        return;
-      }
-
-      setExams(data || []);
+      // Always use dummy data
+      setExams(dummyExams);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to load exams');
+      setExams(dummyExams);
     } finally {
       setLoading(false);
     }
@@ -131,8 +122,8 @@ const ExamTimetableTab = () => {
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Clock className="w-4 h-4" />
                     <span>
-                      {exam.start_time ? formatTime(exam.start_time) : 'TBA'} - 
-                      {exam.end_time ? formatTime(exam.end_time) : 'TBA'}
+                      {exam.start_time ? formatTime(exam.start_time) : 'TBA'} 
+                      {exam.duration_minutes && ` (${exam.duration_minutes} mins)`}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
@@ -143,8 +134,13 @@ const ExamTimetableTab = () => {
                 
                 <div className="mt-3">
                   <p className="text-sm text-purple-600 font-medium">
-                    {exam.type || 'Written Exam'}
+                    {exam.exam_type || 'Written Exam'}
                   </p>
+                  {exam.syllabus_coverage && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Coverage: {exam.syllabus_coverage}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
