@@ -32,13 +32,13 @@ const App = () => {
             {/* Public routes - no authentication required */}
             <Route path="/login" element={<Login />} />
             
-            {/* Protected routes - authentication required */}
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            {/* Public routes - no authentication required */}
+            <Route path="/" element={<Index />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/homework" element={<ProtectedRoute><Homework /></ProtectedRoute>} />
-            <Route path="/timetable" element={<ProtectedRoute><Timetable /></ProtectedRoute>} />
-            <Route path="/school-events" element={<ProtectedRoute><SchoolEvents /></ProtectedRoute>} />
-            <Route path="/results" element={<ProtectedRoute><Results /></ProtectedRoute>} />
+            <Route path="/homework" element={<Homework />} />
+            <Route path="/timetable" element={<Timetable />} />
+            <Route path="/school-events" element={<SchoolEvents />} />
+            <Route path="/results" element={<Results />} />
 
             {/* 404 Not Found */}
             <Route path="*" element={<NotFound />} />
