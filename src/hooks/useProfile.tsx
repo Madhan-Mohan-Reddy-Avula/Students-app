@@ -40,9 +40,43 @@ export const useProfile = () => {
   const fetchCurrentStudent = async () => {
     try {
       setLoading(true);
-      // Always use dummy data
-      setStudentData(dummyStudent);
-      setClassInfo(dummyClassInfo);
+      
+      // Try to get from localStorage first, fallback to sample student
+      const currentUser = localStorage.getItem('currentUser');
+      const rollNumber = currentUser ? JSON.parse(currentUser).roll_number : 'CS21A001';
+      
+      const { data: studentData, error: studentError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('roll_number', rollNumber)
+        .single();
+
+      if (studentError || !studentData) {
+        console.error('Error fetching student profile:', studentError);
+        // Fallback to dummy data
+        setStudentData(dummyStudent);
+        setClassInfo(dummyClassInfo);
+        return;
+      }
+
+      // Fetch class info if student has class_id
+      if (studentData.class_id) {
+        const { data: classData, error: classError } = await supabase
+          .from('classes')
+          .select('*')
+          .eq('id', studentData.class_id)
+          .single();
+
+        if (!classError && classData) {
+          setClassInfo(classData);
+        } else {
+          setClassInfo(dummyClassInfo);
+        }
+      } else {
+        setClassInfo(dummyClassInfo);
+      }
+
+      setStudentData(studentData);
     } catch (error) {
       console.error('Error fetching student profile:', error);
       setStudentData(dummyStudent);

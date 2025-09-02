@@ -46,6 +46,7 @@ const Login = () => {
 
       // Store user session in localStorage for demo
       localStorage.setItem('currentUser', JSON.stringify(profiles));
+      localStorage.setItem('currentClassId', profiles.class_id || '');
       localStorage.setItem('isAuthenticated', 'true');
 
       toast.success('Login successful!');
@@ -109,8 +110,9 @@ const Login = () => {
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-700 font-medium mb-2">Demo Credentials:</p>
-            <p className="text-xs text-blue-600">Roll Number: CS2021003</p>
-            <p className="text-xs text-blue-600">Password: CS2021003</p>
+            <p className="text-xs text-blue-600">Roll Number: CS21A001</p>
+            <p className="text-xs text-blue-600">Password: CS21A001</p>
+            <p className="text-xs text-blue-600 mt-1 italic">Student: Alexandra Johnson</p>
           </div>
         </CardContent>
       </Card>

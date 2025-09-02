@@ -27,11 +27,23 @@ export const useEvents = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      // Always use dummy data
-      setEvents(dummyEvents);
+      
+      const { data, error } = await supabase
+        .from('school_events')
+        .select('*')
+        .order('event_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching events:', error);
+        toast.error('Failed to load events');
+        setEvents([]);
+        return;
+      }
+
+      setEvents(data || []);
     } catch (error) {
-      console.error('Error:', error);
-      setEvents(dummyEvents);
+      console.error('Unexpected error:', error);
+      setEvents([]);
     } finally {
       setLoading(false);
     }

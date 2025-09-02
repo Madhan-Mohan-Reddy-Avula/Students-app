@@ -15,9 +15,10 @@ interface Assignment {
   title: string;
   description: string;
   due_date: string;
-  priority: string;
   status: string;
-  faculty?: any; // Make faculty optional and flexible to handle database response
+  assigned_date: string;
+  class_id: string;
+  created_at: string;
 }
 
 const Homework = () => {
@@ -44,12 +45,7 @@ const Homework = () => {
 
       const { data, error } = await supabase
         .from('homework_assignments')
-        .select(`
-          *,
-          faculty (
-            name
-          )
-        `)
+        .select('*')
         .eq('class_id', currentClassId)
         .order('due_date', { ascending: true });
 
@@ -74,7 +70,7 @@ const Homework = () => {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'in-progress':
+      case 'in_progress':
         return 'bg-yellow-100 text-yellow-800';
       case 'pending':
         return 'bg-red-100 text-red-800';
@@ -83,24 +79,11 @@ const Homework = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'border-l-red-500';
-      case 'medium':
-        return 'border-l-yellow-500';
-      case 'low':
-        return 'border-l-green-500';
-      default:
-        return 'border-l-gray-500';
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'in-progress':
+      case 'in_progress':
         return <Clock className="w-5 h-5 text-yellow-500" />;
       case 'pending':
         return <AlertCircle className="w-5 h-5 text-red-500" />;
@@ -169,7 +152,7 @@ const Homework = () => {
           {filteredAssignments.map((assignment) => (
             <div
               key={assignment.id}
-              className={`card-3d p-6 border-l-4 ${getPriorityColor(assignment.priority)} animate-fade-in`}
+              className={`card-3d p-6 border-l-4 border-l-purple-500 animate-fade-in`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -181,17 +164,11 @@ const Homework = () => {
                         assignment.status
                       )}`}
                     >
-                      {assignment.status.replace('-', ' ')}
+                      {assignment.status.replace('_', ' ')}
                     </span>
                   </div>
 
                   <p className="text-purple-600 font-medium mb-2">{assignment.subject}</p>
-
-                  {assignment.faculty && (
-                    <p className="text-gray-500 text-sm mb-2">
-                      Assigned by: {assignment.faculty.name}
-                    </p>
-                  )}
 
                   <p className="text-gray-600 mb-4">
                     {assignment.description || 'No description provided'}
@@ -203,8 +180,8 @@ const Homework = () => {
                       <span>Due: {new Date(assignment.due_date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="capitalize">{assignment.priority} Priority</span>
+                      <Clock className="w-4 h-4" />
+                      <span>Assigned: {new Date(assignment.assigned_date).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>

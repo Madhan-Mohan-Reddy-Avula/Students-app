@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { dummyHomework } from '@/data/dummyData';
 
 interface HomeworkAssignment {
   id: string;
@@ -10,10 +9,10 @@ interface HomeworkAssignment {
   description: string;
   subject: string;
   due_date: string;
-  status: 'pending' | 'completed' | 'overdue';
-  priority: 'low' | 'medium' | 'high';
+  assigned_date: string;
+  status: string;
+  class_id: string;
   created_at: string;
-  updated_at: string;
 }
 
 export const useHomework = () => {
@@ -27,11 +26,26 @@ export const useHomework = () => {
   const fetchHomework = async () => {
     try {
       setLoading(true);
-      // Always use dummy data
-      setHomework(dummyHomework);
+      
+      const currentClassId = localStorage.getItem('currentClassId') || 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
+      
+      const { data, error } = await supabase
+        .from('homework_assignments')
+        .select('*')
+        .eq('class_id', currentClassId)
+        .order('due_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching homework:', error);
+        toast.error('Failed to load homework assignments');
+        setHomework([]);
+        return;
+      }
+
+      setHomework(data || []);
     } catch (error) {
-      console.error('Error:', error);
-      setHomework(dummyHomework);
+      console.error('Unexpected error:', error);
+      setHomework([]);
     } finally {
       setLoading(false);
     }
