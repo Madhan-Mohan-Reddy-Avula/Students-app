@@ -17,6 +17,8 @@ interface Exam {
 
 const ExamTimetableTab = () => {
   const { exams, loading } = useExamTimetable();
+  
+  console.log('ExamTimetableTab - exams:', exams, 'loading:', loading);
 
   const getDaysUntilExam = (examDate: string) => {
     const today = new Date();
