@@ -27,7 +27,6 @@ export const useTimetable = () => {
       setLoading(true);
       
       const currentClassId = localStorage.getItem('currentClassId') || 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-      console.log('Fetching timetable for class:', currentClassId);
       
       const { data, error } = await supabase
         .from('class_timetable')
@@ -36,8 +35,6 @@ export const useTimetable = () => {
         .order('day_of_week', { ascending: true })
         .order('start_time', { ascending: true });
 
-      console.log('Timetable response:', { data, error });
-
       if (error) {
         console.error('Error fetching timetable:', error);
         toast.error('Failed to load class timetable');
@@ -45,7 +42,6 @@ export const useTimetable = () => {
         return;
       }
 
-      console.log('Setting timetable data:', data);
       setTimetable(data || []);
     } catch (error) {
       console.error('Unexpected error:', error);

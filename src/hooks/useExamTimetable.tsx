@@ -27,15 +27,12 @@ export const useExamTimetable = () => {
       setLoading(true);
       
       const currentClassId = localStorage.getItem('currentClassId') || 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-      console.log('Fetching exams for class:', currentClassId);
       
       const { data, error } = await supabase
         .from('exam_timetable')
         .select('*')
         .eq('class_id', currentClassId)
         .order('exam_date', { ascending: true });
-
-      console.log('Exam timetable response:', { data, error });
 
       if (error) {
         console.error('Error fetching exam timetable:', error);
@@ -44,7 +41,6 @@ export const useExamTimetable = () => {
         return;
       }
 
-      console.log('Setting exam data:', data);
       setExams(data || []);
     } catch (error) {
       console.error('Unexpected error:', error);

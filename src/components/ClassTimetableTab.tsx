@@ -18,8 +18,6 @@ interface TimetableEntry {
 
 const ClassTimetableTab = () => {
   const { timetable: timetableData, loading } = useTimetable();
-  
-  console.log('ClassTimetableTab - timetableData:', timetableData, 'loading:', loading);
 
   const getDayName = (dayNumber: number) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
