@@ -1,40 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Calendar, Clock, MapPin, BookOpen } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { dummyExams } from '@/data/dummyData';
+import { useExamTimetable } from '@/hooks/useExamTimetable';
 
 interface Exam {
   id: string;
   subject: string;
   exam_date: string;
   start_time: string;
-  duration_minutes?: number;
+  end_time: string;
   room: string;
-  exam_type?: string;
-  max_score?: number;
-  syllabus_coverage?: string;
+  exam_type: string;
+  class_id: string;
+  created_at: string;
 }
 
 const ExamTimetableTab = () => {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchExams();
-  }, []);
-
-  const fetchExams = async () => {
-    try {
-      setLoading(true);
-      // Always use dummy data
-      setExams(dummyExams);
-    } catch (error) {
-      console.error('Error:', error);
-      setExams(dummyExams);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { exams, loading } = useExamTimetable();
 
   const getDaysUntilExam = (examDate: string) => {
     const today = new Date();
@@ -122,8 +104,7 @@ const ExamTimetableTab = () => {
                   <div className="flex items-center space-x-2 text-gray-600">
                     <Clock className="w-4 h-4" />
                     <span>
-                      {exam.start_time ? formatTime(exam.start_time) : 'TBA'} 
-                      {exam.duration_minutes && ` (${exam.duration_minutes} mins)`}
+                      {exam.start_time ? formatTime(exam.start_time) : 'TBA'} - {exam.end_time ? formatTime(exam.end_time) : 'TBA'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-600">
@@ -136,11 +117,6 @@ const ExamTimetableTab = () => {
                   <p className="text-sm text-purple-600 font-medium">
                     {exam.exam_type || 'Written Exam'}
                   </p>
-                  {exam.syllabus_coverage && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Coverage: {exam.syllabus_coverage}
-                    </p>
-                  )}
                 </div>
               </CardContent>
             </Card>

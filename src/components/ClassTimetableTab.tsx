@@ -1,48 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BookOpen } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { dummyTimetable } from '@/data/dummyData';
+import { useTimetable } from '@/hooks/useTimetable';
 
 interface TimetableEntry {
   id: string;
-  day_of_week: string | number;
+  day_of_week: string;
   start_time: string;
   end_time: string;
-  room_location?: string;
-  room?: string;
-  teacher: string;
-  subject?: string;
-  subjects?: {
-    name: string;
-  };
-  faculty?: {
-    name: string;
-  };
+  room: string;
+  faculty: string;
+  subject: string;
+  class_id: string;
+  created_at: string;
 }
 
 const ClassTimetableTab = () => {
-  const [timetableData, setTimetableData] = useState<TimetableEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchTimetable();
-  }, []);
-
-  const fetchTimetable = async () => {
-    try {
-      setLoading(true);
-      // Always use dummy data
-      setTimetableData(dummyTimetable);
-    } catch (error) {
-      console.error('Error:', error);
-      setTimetableData(dummyTimetable);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { timetable: timetableData, loading } = useTimetable();
 
   const getDayName = (dayNumber: number) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -51,10 +26,10 @@ const ClassTimetableTab = () => {
 
   const getDayNumberFromName = (dayName: string): number => {
     const dayMap: { [key: string]: number } = {
-      'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5,
-      'sunday': 0, 'saturday': 6
+      'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5,
+      'Sunday': 0, 'Saturday': 6
     };
-    return dayMap[dayName.toLowerCase()] || 0;
+    return dayMap[dayName] || 0;
   };
 
   const formatTime = (time: string) => {
@@ -83,10 +58,8 @@ const ClassTimetableTab = () => {
       if (!matrix[timeSlot]) {
         matrix[timeSlot] = {};
       }
-      // Handle both string and number day formats
-      const dayNumber = typeof entry.day_of_week === 'string' 
-        ? getDayNumberFromName(entry.day_of_week)
-        : entry.day_of_week;
+      // Handle day_of_week as string
+      const dayNumber = getDayNumberFromName(entry.day_of_week);
       if (dayNumber >= 1 && dayNumber <= 5) {
         matrix[timeSlot][dayNumber] = entry;
       }
@@ -136,17 +109,14 @@ const ClassTimetableTab = () => {
                     </TableCell>
                     {[1, 2, 3, 4, 5].map((dayNum) => {
                       const entry = timetableMatrix[timeSlot]?.[dayNum];
-                      const subject = entry?.subjects?.name || entry?.subject || 'No Subject';
-                      const teacher = entry?.faculty?.name || entry?.teacher || 'No Teacher';
-                      const room = entry?.room_location || entry?.room || '';
                       
                       return (
                         <TableCell key={dayNum} className="font-semibold text-gray-800">
                           {entry ? (
                             <div className="space-y-1">
-                              <div className="font-bold">{subject}</div>
-                              <div className="text-sm text-gray-600">{teacher}</div>
-                              {room && <div className="text-xs text-gray-500">{room}</div>}
+                              <div className="font-bold">{entry.subject}</div>
+                              <div className="text-sm text-gray-600">{entry.faculty}</div>
+                              <div className="text-xs text-gray-500">{entry.room}</div>
                             </div>
                           ) : (
                             <span className="text-gray-400">-</span>
