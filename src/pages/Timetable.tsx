@@ -1,18 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BookOpen, Calendar } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ClassTimetableTab from '@/components/ClassTimetableTab';
 import ExamTimetableTab from '@/components/ExamTimetableTab';
+import FacultySection from '@/components/FacultySection'; // optional
 
 const Timetable = () => {
-  // Ensure currentClassId is set in localStorage for the hooks to work
+  const [classId, setClassId] = useState<string | null>(null);
+  const [facultyList, setFacultyList] = useState<any[]>([]);
+
   useEffect(() => {
+    // Set default class ID for demo purposes
     const currentClassId = localStorage.getItem('currentClassId');
     if (!currentClassId) {
-      // Set default class ID if not present
       localStorage.setItem('currentClassId', 'f47ac10b-58cc-4372-a567-0e02b2c3d479');
     }
+    setClassId('f47ac10b-58cc-4372-a567-0e02b2c3d479');
   }, []);
 
   return (
@@ -37,6 +41,7 @@ const Timetable = () => {
 
           <TabsContent value="class" className="space-y-6">
             <ClassTimetableTab />
+            {facultyList.length > 0 && <FacultySection facultyList={facultyList} />}
           </TabsContent>
 
           <TabsContent value="exam" className="space-y-6">

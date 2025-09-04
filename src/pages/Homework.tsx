@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen, CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -10,7 +10,15 @@ import { useHomework } from '@/hooks/useHomework';
 
 const Homework = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const { homework, loading } = useHomework();
+  const { homework: assignments, loading } = useHomework();
+
+  // Ensure currentClassId is set in localStorage for demo purposes
+  useEffect(() => {
+    const currentClassId = localStorage.getItem('currentClassId');
+    if (!currentClassId) {
+      localStorage.setItem('currentClassId', 'f47ac10b-58cc-4372-a567-0e02b2c3d479');
+    }
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -40,11 +48,11 @@ const Homework = () => {
 
   // Filter assignments by selected date
   const filteredAssignments = selectedDate
-    ? homework.filter((assignment) => {
+    ? assignments.filter((assignment) => {
         const assignmentDate = new Date(assignment.due_date);
         return assignmentDate.toDateString() === selectedDate.toDateString();
       })
-    : homework;
+    : assignments;
 
   if (loading) {
     return (
