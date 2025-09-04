@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BookOpen, Calendar } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,10 +7,10 @@ import ExamTimetableTab from '@/components/ExamTimetableTab';
 import FacultySection from '@/components/FacultySection'; // optional
 
 const Timetable = () => {
-  const [classId, setClassId] = useState<string | null>(null);
-  const [facultyList, setFacultyList] = useState<any[]>([]);
+  const [classId, setClassId] = React.useState<string | null>(null);
+  const [facultyList, setFacultyList] = React.useState<any[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Set default class ID for demo purposes
     const currentClassId = localStorage.getItem('currentClassId');
     if (!currentClassId) {
