@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Calendar, Clock, CheckCircle, AlertCircle, BookOpen, CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -6,65 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-interface Assignment {
-  id: string;
-  subject: string;
-  title: string;
-  description: string;
-  due_date: string;
-  status: string;
-  assigned_date: string;
-  class_id: string;
-  created_at: string;
-}
+import { useHomework } from '@/hooks/useHomework';
 
 const Homework = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAssignments();
-  }, []);
-
-  const fetchAssignments = async () => {
-    try {
-      setLoading(true);
-
-      const currentUser = localStorage.getItem('currentUser');
-      const currentClassId = localStorage.getItem('currentClassId');
-
-      if (!currentUser || !currentClassId) {
-        toast.error('User or Class ID not found. Please log in again.');
-        setAssignments([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('homework_assignments')
-        .select('*')
-        .eq('class_id', currentClassId)
-        .order('due_date', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching assignments:', error);
-        toast.error('Failed to load assignments');
-        setAssignments([]);
-        return;
-      }
-
-      setAssignments(data || []);
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      toast.error('An unexpected error occurred');
-      setAssignments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { homework, loading } = useHomework();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -94,11 +40,11 @@ const Homework = () => {
 
   // Filter assignments by selected date
   const filteredAssignments = selectedDate
-    ? assignments.filter((assignment) => {
+    ? homework.filter((assignment) => {
         const assignmentDate = new Date(assignment.due_date);
         return assignmentDate.toDateString() === selectedDate.toDateString();
       })
-    : assignments;
+    : homework;
 
   if (loading) {
     return (

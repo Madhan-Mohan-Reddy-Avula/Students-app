@@ -1,24 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BookOpen, Calendar } from 'lucide-react';
 import NavigationHeader from '@/components/NavigationHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ClassTimetableTab from '@/components/ClassTimetableTab';
 import ExamTimetableTab from '@/components/ExamTimetableTab';
-import FacultySection from '@/components/FacultySection'; // optional
 
 const Timetable = () => {
-  const [classId, setClassId] = useState<string | null>(null);
-  const [facultyList, setFacultyList] = useState<any[]>([]);
-
+  // Ensure currentClassId is set in localStorage for the hooks to work
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      try {
-        const user = JSON.parse(currentUser);
-        setClassId(user.class_id || null);
-      } catch (err) {
-        console.error('Failed to parse currentUser from localStorage:', err);
-      }
+    const currentClassId = localStorage.getItem('currentClassId');
+    if (!currentClassId) {
+      // Set default class ID if not present
+      localStorage.setItem('currentClassId', 'f47ac10b-58cc-4372-a567-0e02b2c3d479');
     }
   }, []);
 
@@ -43,23 +36,11 @@ const Timetable = () => {
           </TabsList>
 
           <TabsContent value="class" className="space-y-6">
-            {classId ? (
-              <>
-                <ClassTimetableTab />
-                {/* If you want to show faculty info per class, enable this */}
-                {facultyList.length > 0 && <FacultySection facultyList={facultyList} />}
-              </>
-            ) : (
-              <p className="text-center text-gray-600">Class ID not found. Please log in again.</p>
-            )}
+            <ClassTimetableTab />
           </TabsContent>
 
           <TabsContent value="exam" className="space-y-6">
-            {classId ? (
-              <ExamTimetableTab />
-            ) : (
-              <p className="text-center text-gray-600">Class ID not found. Please log in again.</p>
-            )}
+            <ExamTimetableTab />
           </TabsContent>
         </Tabs>
       </div>
